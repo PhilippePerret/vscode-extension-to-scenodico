@@ -57,7 +57,12 @@ window.addEventListener('message', (event: MessageEvent<Message>) => {
         targetElement.innerHTML = message.content;
       }
       break;
-    case 'load':
+    case 'cacheData':
+      // Mise en cache des données du type
+      console.log("[WEBVIEW] Mise en cache des données du panneau %s", message.panelId);
+      cacheAllData(message.items, message.panelId);
+      break;
+    case 'populate':
       console.log('[CLIENT] Processing load message - panelId:', message.panelId, 'items count:', message.items?.length);
       renderItems(message.items, message.panelId);
       break;
@@ -224,33 +229,27 @@ function getClassItem(panelId: string): typeof CommonClassItem | null {
   }
 }
 
+// Fonction généric pour mettre en cache toutes les données
+function cacheAllData(items: ItemData[], panelId: string): void {
+  const itemClass = getClassItem(panelId);
+  console.log(`[WEBVIEW] Mise en cache des données ${panelId}`);
+  itemClass?.buildCache(items);
+  vscode.postMessage({ command: 'cache-ready' });
+}
+
 // Generic render function for all panel types
 function renderItems(items: ItemData[], panelId: string): void {
-  const itemClass = getClassItem(panelId);
-  
-  if (!itemClass) {
-    console.error(`No item class found for panelId: ${panelId}`);
-    return;
-  }
-  
-  if (!itemClass.container || !itemClass.template) {
-    console.error(`Container or template not found for ${panelId}`);
-    return;
-  }
-  
-  // Construire le cache automatiquement avec les données reçues
-  if (items.length > 0) {
-    console.log(`[CLIENT] Building cache for ${panelId} with ${items.length} items`);
-    itemClass.buildCache(items);
-  }
-  
-  // Clear loading message
-  itemClass.container.innerHTML = '';
+  const itemClass = getClassItem(panelId) as typeof CommonClassItem;
+  const container = itemClass.container as HTMLDivElement;
+
+  // Vider (au cas où) le container
+  container.innerHTML = '';
   
   if (items.length) {
+    // Bon, normalement, il y aura toujours des éléments
     renderExistingItems(items, itemClass);
   } else {
-    itemClass.container.innerHTML = `<div class="no-${panelId}">${itemClass.error('no-items')}</div>`;
+    container.innerHTML = `<div class="no-${panelId}">${itemClass.error('no-items')}</div>`;
   }
   
   // Signal que le panneau a fini de charger (même sans items)

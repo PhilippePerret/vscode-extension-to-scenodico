@@ -20,17 +20,11 @@ export abstract class CommonClassItem {
   }
 
   static get container(): HTMLElement | null {
-    if (!this._container) {
-      this._container = document.querySelector('main#items');
-    }
-    return this._container;
+    return this._container || (this._container = document.querySelector('main#items'));
   }
 
   static get template(): HTMLTemplateElement | null {
-    if (!this._template) {
-      this._template = document.querySelector('template#item-template');
-    }
-    return this._template;
+    return this._template || (this._template = document.querySelector('template#item-template')) ;
   }
 
   static error(errorId: string): string {
@@ -57,7 +51,6 @@ export abstract class CommonClassItem {
 
   /**
    * Construit le cache à partir des données en base de données
-   * Méthode commune DRY - pas de duplication !
    */
   static buildCache(bddData: ItemData[]): void {
     console.log(`[${this.name}] buildCache called with ${bddData.length} items`);
@@ -79,6 +72,10 @@ export abstract class CommonClassItem {
    * @param id - ID de l'élément à récupérer
    */
   static get(id: string): AnyCachedData | null {
+    if ( this.cacheManager.isBuilt === true ) {
+      console.info("cache manager des oeuvre", this.cacheManager);
+      throw new Error("Pour s'arrêter là");
+    }
     return this.cacheManager.get(id);
   }
 
@@ -133,14 +130,6 @@ export abstract class CommonClassItem {
   static get searchCache(): AnyCachedData[] | null {
     const manager = this.cacheManager;
     return manager.isBuilt ? manager.getAll() : null;
-  }
-
-  /**
-   * Accesso pour être compatible avec les tests existants
-   * @deprecated
-   */
-  static get _searchCache(): AnyCachedData[] | null {
-    return this.searchCache;
   }
 
   /**

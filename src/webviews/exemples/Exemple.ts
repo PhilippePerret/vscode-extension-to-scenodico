@@ -6,8 +6,8 @@ import { Entry } from '../entries/Entry';
 
 export interface ExempleData extends ItemData {
   content: string;
-  oeuvre_id?: string;
-  entry_id?: string;
+  oeuvre_id: string;
+  entry_id: string;
 }
 
 export class Exemple extends CommonClassItem {
@@ -76,18 +76,54 @@ export class Exemple extends CommonClassItem {
   }
 
   /**
-   * Recherche d'exemples par contenu (optimisée)
+   * Filtrage des exemples 
    * Méthode spécifique Exemple
+   * 
+   * En mode "normal"
+   * Le filtrage, sauf indication contraire, se fait par rapport aux
+   * titres de film. Le mécanisme est le suivant : l'user tape un
+   * début de titres de film. On en déduit les titres grâce à la
+   * méthode de la classe Oeuvre. On prend l'identifiant et on 
+   * affiche tous les exemples du film voulu.
+   * 
+   * En mode "Entrée", l'utilisateur tape une entrée du dictionnaire
+   * et la méthode renvoie tous les exemples concernant cette entrée.
+   * 
+   * En mode "Contenu", la recherche se fait sur le contenu, partout
+   * et sur toutes les entrées.
+   * 
+   * QUESTION Comment faire la différence entre les différents modes
+   * de recherche ? peut-être avec un préfix ('content' pour recher-
+   * che sur le contenu, 'dico:' ou 'entree:' pour la recherche sur 
+   * les entrées et rien pour la recherche sur le film)
    */
   static searchMatchingTerm(searchTerm: string): CachedExempleData[] {
     const searchLower = StringNormalizer.toLower(searchTerm);
     const searchRa = StringNormalizer.rationalize(searchTerm);
-    
-    return this.filter((exemple: any) => {
-      return exemple.content_min.includes(searchLower) ||
-             exemple.content_min_ra.includes(searchRa);
-    }) as CachedExempleData[];
-  }
+    const mode: string = 'by oeuvre' ; // doit pouvoir être déterminé depuis searchLower
+
+    switch (mode) {
+      case 'by oeuvre':
+        /*
+        TODO Ça doit être affiné : 
+        - on appelle la méthode Oeuvre.searchMatchingTerm(searchLower) pour
+          obtenir les oeuvres possibles
+        - on boucle sur chaque oeuvre pour obtenir les exemples. On retourne 
+          la liste obtenue.
+        */
+        const oeuvreId = 'DITD' ; // à déterminer en fonction du début cherché
+        return this.getByOeuvre(oeuvreId) as CachedExempleData[];
+      case 'by entry':
+        return [] as CachedExempleData[];
+      case 'by content':
+        return this.filter((exemple: any) => {
+          return exemple.content_min.includes(searchLower) ||
+            exemple.content_min_ra.includes(searchRa);
+        }) as CachedExempleData[];
+      default:
+        return [] ; // ne doit jamais être atteint, juste pour lint
+    }
+ }
 
   /**
    * Récupère tous les exemples associés à une oeuvre
@@ -115,8 +151,17 @@ export class Exemple extends CommonClassItem {
   }
 
   /**
-   * Post-traitement après affichage : regrouper les exemples par œuvre
+   * Post-traitement après affichage : ajouter les titres des films
    * IMPORTANT: Cette méthode est appelée après l'affichage initial
+   * 
+   * Fonctionnement
+   * --------------
+   * Pour optimiser le traitement, en considérant qu'on peut avoir
+   * des milliers d'exemples, on ne passe pas par le DOM mais par
+   * les données (getAll). Puisqu'elles sont relevées dans l'ordre,
+   * c'est-à-dire par film, il suffit d'ajouter un titre au premier
+   * exemple qu'on trouve qui a un film différent du précédent.
+   * 
    */
   static afterDisplayItems(): boolean {
     console.log('[EXEMPLES] afterDisplayItems - Grouping examples by oeuvre');
@@ -124,93 +169,36 @@ export class Exemple extends CommonClassItem {
     const mainConteneur = this.container as HTMLElement | null ;
     
     if ( mainConteneur === null ) {
+      // Ça ne devrait jamais arriver
       console.error('[EXEMPLES] No container found for grouping');
       return false;
     }
-    
-    const exemples = Array.from(mainConteneur.querySelectorAll('div.exemple'));
-    if (exemples.length === 0) {
-      console.log('[EXEMPLES] No examples found to group');
-      return true;
-    }
-    
-    // Regrouper par oeuvre_id
-    const groupsByOeuvre = new Map<string, Element[]>();
-    const ungrouped: Element[] = [];
-    
-    exemples.forEach(exempleElement => {
-      const oeuvreId = exempleElement.querySelector('.exemple-oeuvre_id')?.textContent?.trim();
-      if (oeuvreId && oeuvreId !== '') {
-        if (!groupsByOeuvre.has(oeuvreId)) {
-          groupsByOeuvre.set(oeuvreId, []);
-        }
-        groupsByOeuvre.get(oeuvreId)!.push(exempleElement);
-      } else {
-        ungrouped.push(exempleElement);
+    // Film courant
+    let currentOeuvreId = '' ;
+    Exemple.getAll().forEach(exemple => {
+      if ( exemple.oeuvre_id === currentOeuvreId ) { return ; }
+      // Le film change, il faut mettre un titre avant
+      const domObj = document.querySelector(`main#items > div.item[data-id="${exemple.id}"]`) as HTMLDivElement ;
+      currentOeuvreId = exemple.oeuvre_id as string ;
+      const titleObj = document.createElement('h2');
+      const oeuvre = Oeuvre.get(currentOeuvreId) ;
+      if ( !oeuvre ) {
+        console.log("Oeuvre introuvable, Oeuvre.cacheManager vaut", Oeuvre.cacheManagerForced);
+        throw new Error("L'œuvre devrait être définie.")
       }
-    });
-    
-    console.log(`[EXEMPLES] Found ${groupsByOeuvre.size} oeuvre groups and ${ungrouped.length} ungrouped examples`);
-    
-    // Vider le container et reconstruire avec les groupes
-    mainConteneur.innerHTML = '';
-    
-    // Ajouter les groupes avec titres
-    for (const [oeuvreId, oeuvreExemples] of groupsByOeuvre) {
-      // Trouver le titre de l'oeuvre dans le cache
-      let oeuvreTitle = oeuvreId; // fallback
-      if (this.isCacheBuilt) {
-        // Chercher dans nos examples cached pour trouver le titre
-        const exempleWithOeuvre = oeuvreExemples[0];
-        if (exempleWithOeuvre) {
-          const dataId = exempleWithOeuvre.getAttribute('data-id');
-          if (dataId) {
-            const cachedExemple = this.get(dataId);
-            if (cachedExemple?.oeuvre_titre) {
-              oeuvreTitle = cachedExemple.oeuvre_titre;
-            }
-          }
-        }
-      }
-      
-      // Créer le titre de section
-      const oeuvreHeader = document.createElement('h3');
-      oeuvreHeader.className = 'oeuvre-title';
-      oeuvreHeader.textContent = oeuvreTitle;
-      
-      // Ajouter bouton d'ajout d'exemple
+      console.log("oeuvre répondant à l'id %s", currentOeuvreId, oeuvre);
+      const titre = oeuvre ? oeuvre.titre_affiche : "œuvre introuvable" ;
+      console.log("Titre", titre);
+      titleObj.innerHTML = titre ;
+       // Ajouter bouton d'ajout d'exemple
       const btnAdd = document.createElement('button');
-      btnAdd.className = 'btn-add-exemple';
+      btnAdd.className = 'btn-add';
       btnAdd.innerHTML = '<i class="codicon codicon-add"></i>';
-      btnAdd.setAttribute('data-oeuvre-id', oeuvreId);
-      oeuvreHeader.appendChild(btnAdd);
-      
-      const cont = this.container as HTMLElement | null ;
-
-      mainConteneur.appendChild(oeuvreHeader);
-      
-      // Ajouter les exemples du groupe
-      oeuvreExemples.forEach(exemple => {
-        mainConteneur.appendChild(exemple);
-      });
-    }
-    
-    // Ajouter les exemples non groupés à la fin
-    if (ungrouped.length > 0) {
-      if ( mainConteneur !== null ) {
-        const ungroupedHeader = document.createElement('h3');
-        ungroupedHeader.className = 'oeuvre-title';
-        ungroupedHeader.textContent = 'Exemples sans œuvre';
-        mainConteneur.appendChild(ungroupedHeader);
-        ungrouped.forEach(exemple => {
-          mainConteneur.appendChild(exemple);
-        });
-      } else {
-        throw new ReferenceError("Le container des exemples est introuvable…");
-      }
-   }
-    
-    console.log('[EXEMPLES] Grouping completed');
+      btnAdd.setAttribute('data-oeuvre_id', currentOeuvreId);
+      titleObj.appendChild(btnAdd);
+      domObj.parentNode?.insertBefore(titleObj, domObj);
+    });
+    console.log('[EXEMPLES] Titling completed');
     return true;
   }
 }

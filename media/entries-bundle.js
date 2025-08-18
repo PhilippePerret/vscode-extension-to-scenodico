@@ -64,6 +64,10 @@
      * @param id - ID de l'élément à récupérer
      */
     static get(id) {
+      if (this.cacheManager.isBuilt === true) {
+        console.info("cache manager des oeuvre", this.cacheManager);
+        throw new Error("Pour s'arr\xEAter l\xE0");
+      }
       return this.cacheManager.get(id);
     }
     /**
@@ -326,6 +330,10 @@
     static get cacheManager() {
       return this._cacheManagerInstance;
     }
+    // pour test
+    static get cacheManagerForced() {
+      return this.cacheManager;
+    }
     static ERRORS = {
       "no-items": "Aucune \u0153uvre dans la base, bizarrement\u2026"
     };
@@ -394,7 +402,7 @@
   };
 
   // src/webviews/exemples/Exemple.ts
-  var Exemple = class extends CommonClassItem {
+  var Exemple = class _Exemple extends CommonClassItem {
     static minName = "exemple";
     // Cache manager spécifique aux exemples
     static _cacheManagerInstance = new CacheManager();
@@ -448,15 +456,44 @@
       };
     }
     /**
-     * Recherche d'exemples par contenu (optimisée)
+     * Filtrage des exemples 
      * Méthode spécifique Exemple
+     * 
+     * En mode "normal"
+     * Le filtrage, sauf indication contraire, se fait par rapport aux
+     * titres de film. Le mécanisme est le suivant : l'user tape un
+     * début de titres de film. On en déduit les titres grâce à la
+     * méthode de la classe Oeuvre. On prend l'identifiant et on 
+     * affiche tous les exemples du film voulu.
+     * 
+     * En mode "Entrée", l'utilisateur tape une entrée du dictionnaire
+     * et la méthode renvoie tous les exemples concernant cette entrée.
+     * 
+     * En mode "Contenu", la recherche se fait sur le contenu, partout
+     * et sur toutes les entrées.
+     * 
+     * QUESTION Comment faire la différence entre les différents modes
+     * de recherche ? peut-être avec un préfix ('content' pour recher-
+     * che sur le contenu, 'dico:' ou 'entree:' pour la recherche sur 
+     * les entrées et rien pour la recherche sur le film)
      */
     static searchMatchingTerm(searchTerm) {
       const searchLower = StringNormalizer.toLower(searchTerm);
       const searchRa = StringNormalizer.rationalize(searchTerm);
-      return this.filter((exemple) => {
-        return exemple.content_min.includes(searchLower) || exemple.content_min_ra.includes(searchRa);
-      });
+      const mode = "by oeuvre";
+      switch (mode) {
+        case "by oeuvre":
+          const oeuvreId = "DITD";
+          return this.getByOeuvre(oeuvreId);
+        case "by entry":
+          return [];
+        case "by content":
+          return this.filter((exemple) => {
+            return exemple.content_min.includes(searchLower) || exemple.content_min_ra.includes(searchRa);
+          });
+        default:
+          return [];
+      }
     }
     /**
      * Récupère tous les exemples associés à une oeuvre
@@ -480,8 +517,17 @@
       return super.getAll();
     }
     /**
-     * Post-traitement après affichage : regrouper les exemples par œuvre
+     * Post-traitement après affichage : ajouter les titres des films
      * IMPORTANT: Cette méthode est appelée après l'affichage initial
+     * 
+     * Fonctionnement
+     * --------------
+     * Pour optimiser le traitement, en considérant qu'on peut avoir
+     * des milliers d'exemples, on ne passe pas par le DOM mais par
+     * les données (getAll). Puisqu'elles sont relevées dans l'ordre,
+     * c'est-à-dire par film, il suffit d'ajouter un titre au premier
+     * exemple qu'on trouve qui a un film différent du précédent.
+     * 
      */
     static afterDisplayItems() {
       console.log("[EXEMPLES] afterDisplayItems - Grouping examples by oeuvre");
@@ -490,68 +536,30 @@
         console.error("[EXEMPLES] No container found for grouping");
         return false;
       }
-      const exemples = Array.from(mainConteneur.querySelectorAll("div.exemple"));
-      if (exemples.length === 0) {
-        console.log("[EXEMPLES] No examples found to group");
-        return true;
-      }
-      const groupsByOeuvre = /* @__PURE__ */ new Map();
-      const ungrouped = [];
-      exemples.forEach((exempleElement) => {
-        const oeuvreId = exempleElement.querySelector(".exemple-oeuvre_id")?.textContent?.trim();
-        if (oeuvreId && oeuvreId !== "") {
-          if (!groupsByOeuvre.has(oeuvreId)) {
-            groupsByOeuvre.set(oeuvreId, []);
-          }
-          groupsByOeuvre.get(oeuvreId).push(exempleElement);
-        } else {
-          ungrouped.push(exempleElement);
+      let currentOeuvreId = "";
+      _Exemple.getAll().forEach((exemple) => {
+        if (exemple.oeuvre_id === currentOeuvreId) {
+          return;
         }
-      });
-      console.log(`[EXEMPLES] Found ${groupsByOeuvre.size} oeuvre groups and ${ungrouped.length} ungrouped examples`);
-      mainConteneur.innerHTML = "";
-      for (const [oeuvreId, oeuvreExemples] of groupsByOeuvre) {
-        let oeuvreTitle = oeuvreId;
-        if (this.isCacheBuilt) {
-          const exempleWithOeuvre = oeuvreExemples[0];
-          if (exempleWithOeuvre) {
-            const dataId = exempleWithOeuvre.getAttribute("data-id");
-            if (dataId) {
-              const cachedExemple = this.get(dataId);
-              if (cachedExemple?.oeuvre_titre) {
-                oeuvreTitle = cachedExemple.oeuvre_titre;
-              }
-            }
-          }
+        const domObj = document.querySelector(`main#items > div.item[data-id="${exemple.id}"]`);
+        currentOeuvreId = exemple.oeuvre_id;
+        const titleObj = document.createElement("h2");
+        const oeuvre = Oeuvre.get(currentOeuvreId);
+        if (!oeuvre) {
+          console.log("Oeuvre introuvable, Oeuvre.cacheManager vaut", Oeuvre.cacheManagerForced);
         }
-        const oeuvreHeader = document.createElement("h3");
-        oeuvreHeader.className = "oeuvre-title";
-        oeuvreHeader.textContent = oeuvreTitle;
+        console.log("oeuvre r\xE9pondant \xE0 l'id %s", currentOeuvreId, oeuvre);
+        const titre = oeuvre ? oeuvre.titre_affiche : "\u0153uvre introuvable";
+        console.log("Titre", titre);
+        titleObj.innerHTML = titre;
         const btnAdd = document.createElement("button");
-        btnAdd.className = "btn-add-exemple";
+        btnAdd.className = "btn-add";
         btnAdd.innerHTML = '<i class="codicon codicon-add"></i>';
-        btnAdd.setAttribute("data-oeuvre-id", oeuvreId);
-        oeuvreHeader.appendChild(btnAdd);
-        const cont = this.container;
-        mainConteneur.appendChild(oeuvreHeader);
-        oeuvreExemples.forEach((exemple) => {
-          mainConteneur.appendChild(exemple);
-        });
-      }
-      if (ungrouped.length > 0) {
-        if (mainConteneur !== null) {
-          const ungroupedHeader = document.createElement("h3");
-          ungroupedHeader.className = "oeuvre-title";
-          ungroupedHeader.textContent = "Exemples sans \u0153uvre";
-          mainConteneur.appendChild(ungroupedHeader);
-          ungrouped.forEach((exemple) => {
-            mainConteneur.appendChild(exemple);
-          });
-        } else {
-          throw new ReferenceError("Le container des exemples est introuvable\u2026");
-        }
-      }
-      console.log("[EXEMPLES] Grouping completed");
+        btnAdd.setAttribute("data-oeuvre_id", currentOeuvreId);
+        titleObj.appendChild(btnAdd);
+        domObj.parentNode?.insertBefore(titleObj, domObj);
+      });
+      console.log("[EXEMPLES] Titling completed");
       return true;
     }
   };

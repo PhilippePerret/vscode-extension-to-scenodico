@@ -131,7 +131,7 @@ export class PanelManager {
         return new WebviewPanelWrapper(panel);
     }
 
-    static openPanels(context: vscode.ExtensionContext): void {
+    static async openPanels(context: vscode.ExtensionContext): Promise<void> {
         // Fermer les panneaux existants d'abord
         this.closeAllPanels();
         
@@ -165,10 +165,23 @@ export class PanelManager {
         
         this.activePanels = [dictionnaire, oeuvres, exemples];
         
-        // Start data loading for each panel
-        this.loadPanelData(context, dictionnaire.webview, Entry);
-        this.loadPanelData(context, oeuvres.webview, Oeuvre);
-        this.loadPanelData(context, exemples.webview, Exemple);
+        // Après avoir créé les panneaux (vierge, avec les éléments
+        // minimums), on charge les données.
+        // Mais dans un premier temps, on fabrique les données cache
+        // (qui sont des données optimisées)
+        await Promise.all([
+					this.cacheData(context, dictionnaire.webview, Entry),
+					this.cacheData(context, oeuvres.webview, Oeuvre),
+					this.cacheData(context, exemples.webview, Exemple),
+				]);
+				console.info("[EXTENSION] Fin de mise en cache des données");
+				
+				await Promise.all([
+					this.populatePanel(context, dictionnaire.webview, Entry),
+					this.populatePanel(context, oeuvres.webview, Oeuvre),
+					this.populatePanel(context, exemples.webview, Exemple)
+				]);
+				console.info("[EXTENSION] Fin de populate des panneaux.");
     }
     
     /**
@@ -217,51 +230,82 @@ export class PanelManager {
         });
     }
     
+		/**
+		 * Fonction générique pour construire le cache de chaque élément
+		 */
+		private static _sortedItemsPerElement: any; // 'any' pour ne pas m'embêter 
+
+		private static async cacheData(context: vscode.ExtensionContext, webview: vscode.Webview, ModelClass: typeof Entry | typeof Oeuvre | typeof Exemple): Promise<void> {
+			try {
+
+				if ( ! this._sortedItemsPerElement ) {
+					this._sortedItemsPerElement = {
+						entries: null, oeuvres: null, exemples: null
+					};	
+				}
+
+				const isTest = process.env.NODE_ENV === 'test' || context.extensionMode === vscode.ExtensionMode.Test;
+				const dbService = DatabaseService.getInstance(context, isTest);
+				await dbService.initialize();
+
+				let db: any;
+				let sortedItems: any[];
+
+				switch (ModelClass.panelId) {
+					case 'entries':
+						const { EntryDb } = require('../db/EntryDb');
+						db = new EntryDb(dbService);
+						const rawEntries = await db.getAll();
+						sortedItems = rawEntries.sort(Entry.sortFunction);
+						this._sortedItemsPerElement['entries'] = sortedItems;
+						break;
+					case 'oeuvres':
+						const { OeuvreDb } = require('../db/OeuvreDb');
+						db = new OeuvreDb(dbService);
+						const rawOeuvres = await db.getAll();
+						sortedItems = rawOeuvres.sort(Oeuvre.sortFunction);
+						this._sortedItemsPerElement['oeuvres'] = sortedItems;
+						break;
+					case 'exemples':
+						const { ExempleDb } = require('../db/ExempleDb');
+						db = new ExempleDb(dbService);
+						const rawExemples = await db.getAll();
+						sortedItems = rawExemples.sort(Exemple.sortFunction);
+						this._sortedItemsPerElement['exemples'] = sortedItems;
+						break;
+					default:
+						throw new Error(`Unknown panelId: ${ModelClass.panelId}`);
+				}
+            
+            // Send to webview
+            const message = {
+                command: 'cacheData',
+                panelId: ModelClass.panelId,
+                items: sortedItems
+            };
+            console.log(`[PanelManager] Sending ${sortedItems.length} ${ModelClass.panelId} to webview`);
+            webview.postMessage(message);
+ 
+			} catch (error) {
+				console.warn("Impossible de mettre en cache la donnée : ", error);
+			}
+		}
     /**
      * Generic method to load data for any panel using BaseModel classes
      */
-    private static async loadPanelData(context: vscode.ExtensionContext, webview: vscode.Webview, ModelClass: typeof Entry | typeof Oeuvre | typeof Exemple): Promise<void> {
+    private static async populatePanel(context: vscode.ExtensionContext, webview: vscode.Webview, ModelClass: typeof Entry | typeof Oeuvre | typeof Exemple): Promise<void> {
         try {
             const isTest = process.env.NODE_ENV === 'test' || context.extensionMode === vscode.ExtensionMode.Test;
             const dbService = DatabaseService.getInstance(context, isTest);
             await dbService.initialize();
             
-            // TODO REFACTORISER !!! Ce switch case va à l'encontre de l'architecture DRY qu'on vient de créer
-            // Le problème est que BaseModel.DbClass retourne null à cause de l'héritage statique
-            // Il faut corriger l'héritage ou trouver une autre approche pour éviter cette duplication
-            let db: any;
-            let sortedItems: any[];
-            
-            switch (ModelClass.panelId) {
-                case 'entries':
-                    const { EntryDb } = require('../db/EntryDb');
-                    db = new EntryDb(dbService);
-                    const rawEntries = await db.getAll();
-                    sortedItems = rawEntries.sort(Entry.sortFunction);
-                    break;
-                case 'oeuvres':
-                    const { OeuvreDb } = require('../db/OeuvreDb');
-                    db = new OeuvreDb(dbService);
-                    const rawOeuvres = await db.getAll();
-                    sortedItems = rawOeuvres.sort(Oeuvre.sortFunction);
-                    break;
-                case 'exemples':
-                    const { ExempleDb } = require('../db/ExempleDb');
-                    db = new ExempleDb(dbService);
-                    const rawExemples = await db.getAll();
-                    sortedItems = rawExemples.sort(Exemple.sortFunction);
-                    break;
-                default:
-                    throw new Error(`Unknown panelId: ${ModelClass.panelId}`);
-            }
-            
             // Send to webview
             const message = {
                 command: 'load',
                 panelId: ModelClass.panelId,
-                items: sortedItems
+                items: this._sortedItemsPerElement[ModelClass.panelId]
             };
-            console.log(`[PanelManager] Sending ${sortedItems.length} ${ModelClass.panelId} to webview`);
+            console.log(`[PanelManager] Sending ${message.items.length} ${ModelClass.panelId} to webview`);
             webview.postMessage(message);
             
         } catch (error) {

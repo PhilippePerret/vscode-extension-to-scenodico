@@ -138,7 +138,7 @@ class PanelManager {
         }
         return new WebviewPanelWrapper(panel);
     }
-    static openPanels(context) {
+    static async openPanels(context) {
         // Fermer les panneaux existants d'abord
         this.closeAllPanels();
         // Créer 3 panneaux webview et les tracker
@@ -168,10 +168,22 @@ class PanelManager {
         oeuvres.webview.html = this.getPanelHtml(context, oeuvres.webview, Oeuvre_1.Oeuvre, 'Oeuvres');
         exemples.webview.html = this.getPanelHtml(context, exemples.webview, Exemple_1.Exemple, 'Exemples');
         this.activePanels = [dictionnaire, oeuvres, exemples];
-        // Start data loading for each panel
-        this.loadPanelData(context, dictionnaire.webview, Entry_1.Entry);
-        this.loadPanelData(context, oeuvres.webview, Oeuvre_1.Oeuvre);
-        this.loadPanelData(context, exemples.webview, Exemple_1.Exemple);
+        // Après avoir créé les panneaux (vierge, avec les éléments
+        // minimums), on charge les données.
+        // Mais dans un premier temps, on fabrique les données cache
+        // (qui sont des données optimisées)
+        await Promise.all([
+            this.cacheData(context, dictionnaire.webview, Entry_1.Entry),
+            this.cacheData(context, oeuvres.webview, Oeuvre_1.Oeuvre),
+            this.cacheData(context, exemples.webview, Exemple_1.Exemple),
+        ]);
+        console.info("[EXTENSION] Fin de mise en cache des données");
+        await Promise.all([
+            this.populatePanel(context, dictionnaire.webview, Entry_1.Entry),
+            this.populatePanel(context, oeuvres.webview, Oeuvre_1.Oeuvre),
+            this.populatePanel(context, exemples.webview, Exemple_1.Exemple)
+        ]);
+        console.info("[EXTENSION] Fin de populate des panneaux.");
     }
     /**
      * Generic method to generate HTML for any panel using Model classes
@@ -212,16 +224,19 @@ class PanelManager {
         });
     }
     /**
-     * Generic method to load data for any panel using BaseModel classes
+     * Fonction générique pour construire le cache de chaque élément
      */
-    static async loadPanelData(context, webview, ModelClass) {
+    static _sortedItemsPerElement; // 'any' pour ne pas m'embêter 
+    static async cacheData(context, webview, ModelClass) {
         try {
+            if (!this._sortedItemsPerElement) {
+                this._sortedItemsPerElement = {
+                    entries: null, oeuvres: null, exemples: null
+                };
+            }
             const isTest = process.env.NODE_ENV === 'test' || context.extensionMode === vscode.ExtensionMode.Test;
             const dbService = DatabaseService_1.DatabaseService.getInstance(context, isTest);
             await dbService.initialize();
-            // TODO REFACTORISER !!! Ce switch case va à l'encontre de l'architecture DRY qu'on vient de créer
-            // Le problème est que BaseModel.DbClass retourne null à cause de l'héritage statique
-            // Il faut corriger l'héritage ou trouver une autre approche pour éviter cette duplication
             let db;
             let sortedItems;
             switch (ModelClass.panelId) {
@@ -230,29 +245,53 @@ class PanelManager {
                     db = new EntryDb(dbService);
                     const rawEntries = await db.getAll();
                     sortedItems = rawEntries.sort(Entry_1.Entry.sortFunction);
+                    this._sortedItemsPerElement['entries'] = sortedItems;
                     break;
                 case 'oeuvres':
                     const { OeuvreDb } = require('../db/OeuvreDb');
                     db = new OeuvreDb(dbService);
                     const rawOeuvres = await db.getAll();
                     sortedItems = rawOeuvres.sort(Oeuvre_1.Oeuvre.sortFunction);
+                    this._sortedItemsPerElement['oeuvres'] = sortedItems;
                     break;
                 case 'exemples':
                     const { ExempleDb } = require('../db/ExempleDb');
                     db = new ExempleDb(dbService);
                     const rawExemples = await db.getAll();
                     sortedItems = rawExemples.sort(Exemple_1.Exemple.sortFunction);
+                    this._sortedItemsPerElement['exemples'] = sortedItems;
                     break;
                 default:
                     throw new Error(`Unknown panelId: ${ModelClass.panelId}`);
             }
             // Send to webview
             const message = {
-                command: 'load',
+                command: 'cacheData',
                 panelId: ModelClass.panelId,
                 items: sortedItems
             };
             console.log(`[PanelManager] Sending ${sortedItems.length} ${ModelClass.panelId} to webview`);
+            webview.postMessage(message);
+        }
+        catch (error) {
+            console.warn("Impossible de mettre en cache la donnée : ", error);
+        }
+    }
+    /**
+     * Generic method to load data for any panel using BaseModel classes
+     */
+    static async populatePanel(context, webview, ModelClass) {
+        try {
+            const isTest = process.env.NODE_ENV === 'test' || context.extensionMode === vscode.ExtensionMode.Test;
+            const dbService = DatabaseService_1.DatabaseService.getInstance(context, isTest);
+            await dbService.initialize();
+            // Send to webview
+            const message = {
+                command: 'load',
+                panelId: ModelClass.panelId,
+                items: this._sortedItemsPerElement[ModelClass.panelId]
+            };
+            console.log(`[PanelManager] Sending ${message.items.length} ${ModelClass.panelId} to webview`);
             webview.postMessage(message);
         }
         catch (error) {

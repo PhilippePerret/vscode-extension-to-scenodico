@@ -21,6 +21,8 @@ export class Oeuvre extends CommonClassItem {
   protected static get cacheManager(): CacheManager<OeuvreData, CachedOeuvreData> {
     return this._cacheManagerInstance;
   }
+  // pour test
+  static get cacheManagerForced() { return this.cacheManager ; }
   
   static readonly ERRORS = {
     'no-items': 'Aucune œuvre dans la base, bizarrement…',
