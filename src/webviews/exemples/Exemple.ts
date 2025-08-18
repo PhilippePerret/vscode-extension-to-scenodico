@@ -184,7 +184,7 @@ export class Exemple extends CommonClassItem {
       const oeuvre = Oeuvre.get(currentOeuvreId) ;
       if ( !oeuvre ) {
         console.log("Oeuvre introuvable, Oeuvre.cacheManager vaut", Oeuvre.cacheManagerForced);
-        throw new Error("L'œuvre devrait être définie.")
+        throw new Error("L'œuvre devrait être définie.");
       }
       console.log("oeuvre répondant à l'id %s", currentOeuvreId, oeuvre);
       const titre = oeuvre ? oeuvre.titre_affiche : "œuvre introuvable" ;
