@@ -1,0 +1,124 @@
+body {
+    border: 1px solid;
+    font-family: Charter;
+    background-color: whitesmoke;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    position: sticky;
+    top: 0;
+    background-color: #CCCCCC;
+    border-bottom: 1px solid var(--vscode-sideBar-border);
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h2 {
+    position: absolute;
+    top: -7px; left: 4px;
+    margin: 0;
+    font-size: 14px;
+    font-variant: small-caps;
+    color: #339ecd;
+    opacity: 0.5;
+    font-style: italic;
+}
+
+#search-bar {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin-left: 20px;
+}
+
+#search-input {
+    background: #FEFEFE;
+    color: #333;
+    border: 1px solid var(--vscode-input-border);
+    padding: 4px 8px;
+    font-size: 11px;
+}
+#search-input:before {
+    content: '🔍';
+}
+
+
+.tips {
+    font-size: 9px;
+    color: inherit;
+    margin-top: 2px;
+    opacity: 0.5;
+}
+.tips:hover { 
+    opacity: 1; 
+}
+
+main#items {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 10px;
+    /* Force scroll in VSCode webview */
+    max-height: calc(100vh - 120px);
+    position: relative;
+}
+
+#edit-form {
+    padding: 10px;
+    background-color: inherit;
+    border-top: 1px solid var(--vscode-sideBar-border);
+}
+
+.hidden {
+    display: none;
+}
+
+footer {
+    position: sticky;
+    bottom: 0;
+    background-color: #CCC;
+    border-top: 1px solid var(--vscode-statusBar-border);
+    padding: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#panel-console {
+    min-width: 50vw;
+    background: black;
+    color: #EFEFEF;
+    border: 1px solid var(--vscode-input-border);
+    padding: 4px 8px;
+    font-size: 11px;
+    flex: 1;
+    margin-right: 10px;
+    font-family: menlo;
+}
+
+#main-tools-container {
+    display: flex;
+    gap: 5px;
+}
+/* Les éléments principaux de chaque panneau, c'est-à-dire la définition dans le
+dictionnaire, le film dans les films et l'exemple dans les exemples */
+
+main#items .item {
+    border: 1px solid #CCC;
+    border-radius: 0.5em;
+    margin-bottom: 1em;
+    padding: 0.5em 1em;
+}
+/* L'élément principal, dans l'élément, i.e. l'entrée pour le dictionnaire,
+le titre affiché pour le film, l'entrée pour l'exemple (l'index ? aucun ?) */
+main#items > .item .main-prop {
+    font-weight: bold;
+}

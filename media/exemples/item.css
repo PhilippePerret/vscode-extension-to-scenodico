@@ -1,0 +1,7 @@
+div.exemple {
+  display: block; /* juste pour avoir quelque chose */
+}
+.exemple-entry {
+  position:absolute;
+  right: 1em;
+}
