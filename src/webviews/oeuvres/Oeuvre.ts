@@ -88,8 +88,7 @@ export class Oeuvre extends CommonClassItem {
    * Recherche d'œuvres par titre (optimisée)
    * Méthode spécifique Oeuvre
    */
-  static searchMatchingTerm(searchTerm: string): CachedOeuvreData[] {
-    console.log("-> searchByTitle");
+  protected static searchMatchingItems(searchTerm: string): CachedOeuvreData[] {
     const searchLower = StringNormalizer.toLower(searchTerm);
     
     return this.filter((oeuvre: any) => {

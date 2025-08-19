@@ -178,6 +178,7 @@ class PanelManager {
             this.cacheData(context, exemples.webview, Exemple_1.Exemple),
         ]);
         console.info("[EXTENSION] Fin de mise en cache des données");
+        throw new Error("POUR ARRÊTER AVANT LA POPULATION (TOUTES LES DONNÉES DOIVENT AVOIR ÉTÉ MISES EN CACHE.");
         await Promise.all([
             this.populatePanel(context, dictionnaire.webview, Entry_1.Entry),
             this.populatePanel(context, oeuvres.webview, Oeuvre_1.Oeuvre),
@@ -229,11 +230,6 @@ class PanelManager {
     static _sortedItemsPerElement; // 'any' pour ne pas m'embêter 
     static async cacheData(context, webview, ModelClass) {
         try {
-            if (!this._sortedItemsPerElement) {
-                this._sortedItemsPerElement = {
-                    entries: null, oeuvres: null, exemples: null
-                };
-            }
             const isTest = process.env.NODE_ENV === 'test' || context.extensionMode === vscode.ExtensionMode.Test;
             const dbService = DatabaseService_1.DatabaseService.getInstance(context, isTest);
             await dbService.initialize();
@@ -245,21 +241,18 @@ class PanelManager {
                     db = new EntryDb(dbService);
                     const rawEntries = await db.getAll();
                     sortedItems = rawEntries.sort(Entry_1.Entry.sortFunction);
-                    this._sortedItemsPerElement['entries'] = sortedItems;
                     break;
                 case 'oeuvres':
                     const { OeuvreDb } = require('../db/OeuvreDb');
                     db = new OeuvreDb(dbService);
                     const rawOeuvres = await db.getAll();
                     sortedItems = rawOeuvres.sort(Oeuvre_1.Oeuvre.sortFunction);
-                    this._sortedItemsPerElement['oeuvres'] = sortedItems;
                     break;
                 case 'exemples':
                     const { ExempleDb } = require('../db/ExempleDb');
                     db = new ExempleDb(dbService);
                     const rawExemples = await db.getAll();
                     sortedItems = rawExemples.sort(Exemple_1.Exemple.sortFunction);
-                    this._sortedItemsPerElement['exemples'] = sortedItems;
                     break;
                 default:
                     throw new Error(`Unknown panelId: ${ModelClass.panelId}`);
@@ -270,7 +263,7 @@ class PanelManager {
                 panelId: ModelClass.panelId,
                 items: sortedItems
             };
-            console.log(`[PanelManager] Sending ${sortedItems.length} ${ModelClass.panelId} to webview`);
+            console.log(`[EXTENSION] Sending ${sortedItems.length} ${ModelClass.panelId} to webview to cache them.`);
             webview.postMessage(message);
         }
         catch (error) {
@@ -288,10 +281,9 @@ class PanelManager {
             // Send to webview
             const message = {
                 command: 'populate',
-                panelId: ModelClass.panelId,
-                items: this._sortedItemsPerElement[ModelClass.panelId]
+                panelId: ModelClass.panelId
             };
-            console.log(`[PanelManager] Sending ${message.items.length} ${ModelClass.panelId} to webview`);
+            console.log(`[EXTENSION] Demande de populate du panneau ${ModelClass.panelId}`);
             webview.postMessage(message);
         }
         catch (error) {

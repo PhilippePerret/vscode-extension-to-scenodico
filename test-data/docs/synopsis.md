@@ -6,17 +6,15 @@
 
   Elle crée les trois panneaux avec les éléments minimum, mais aucune données.
 
-  À la fin de cette fonction, `panelManager.loadPanelData` est appelé avec chaque classe d'élément (`Entry`, `Oeuvre` et `Exemple`) pour peupler les panneaux.
+  À la fin de cette fonction est appelé sur chaque élément :
+  
+  * `panelManager.cacheData` pour mettre les données brut en cache (`Entry`, `Oeuvre` et `Exemple`) et : 
+  * `panelManager.populatePanel` pour peupler les panneaux c'est-à-dire afficher les données.
 
-* … appel de `panelManager.loadPanelData(context, panneau, classe)`
+* … appel de `panelManager.cacheData(context, panneau, classe)`
 
   La méthode charge les données depuis la base de données avec `<classe>Db.getAll()`.
 
-  Puis elle envoie un message `load` à la webview (TODO: note : la méthode devrait plutôt s'appeller `populate` puisque les données, à ce stade, sont déjà chargées)
+  Puis elle envoie un message `cacheData` à la webview, message reçu par `webview/common.ts` qui appelle alors la méthode générale `cacheAllData` avec les items et le panneau.
 
-  TODO À ce niveau, il y a déjà un problème d'asynchronicité car les données ne sont pas chargées au même rythme et donc, dans certains cas, les données en cache ne sont pas prêtes.
   
-  SOLUTION : 
-
-  SOLUTION 1 : mettre les données d'abord en cache (de façon synchrone) puis appeler les trois chargements de panneau
-  SOLUTION 2 : utiliser les données réelles plutôt que les données en cache. Mettre une condition dans la méthode get pour utiliser les données réelles en cas de donnée en cache absente. C'EST CETTE SOLUTION QUI A ÉTÉ POUR LE MOMENT ADOPTÉE.

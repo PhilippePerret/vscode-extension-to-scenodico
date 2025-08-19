@@ -4,12 +4,20 @@ import { build } from 'esbuild';
 import { existsSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
 
+// // Configuration des points d'entrée pour chaque webview
+// const webviewEntries = {
+//   'entries': 'src/webviews/entries/main.ts',
+//   'oeuvres': 'src/webviews/oeuvres/main.ts',
+//   'exemples': 'src/webviews/exemples/main.ts'
+// };
+
 // Configuration des points d'entrée pour chaque webview
 const webviewEntries = {
-  'entries': 'src/webviews/entries/main.ts',
-  'oeuvres': 'src/webviews/oeuvres/main.ts',
-  'exemples': 'src/webviews/exemples/main.ts'
+  'entries': 'src/webviews/entries/Entry.ts',
+  'oeuvres': 'src/webviews/oeuvres/Oeuvre.ts',
+  'exemples': 'src/webviews/exemples/Exemple.ts'
 };
+
 
 // Configuration esbuild commune
 const baseConfig = {

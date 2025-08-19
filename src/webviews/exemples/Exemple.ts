@@ -109,16 +109,16 @@ export class Exemple extends CommonClassItem {
    * che sur le contenu, 'dico:' ou 'entree:' pour la recherche sur 
    * les entrées et rien pour la recherche sur le film)
    */
-  static searchMatchingTerm(searchTerm: string): CachedExempleData[] {
-    const searchLower = StringNormalizer.toLower(searchTerm);
-    const searchRa = StringNormalizer.rationalize(searchTerm);
+  protected static searchMatchingItems(searched: string): CachedExempleData[] {
+    const searchLower = StringNormalizer.toLower(searched);
+    const searchRa = StringNormalizer.rationalize(searched);
     const mode: string = 'by oeuvre' ; // doit pouvoir être déterminé depuis searchLower
 
     switch (mode) {
       case 'by oeuvre':
         /*
         TODO Ça doit être affiné : 
-        - on appelle la méthode Oeuvre.searchMatchingTerm(searchLower) pour
+        - on appelle la méthode Oeuvre.searchMatchingItems(searchLower) pour
           obtenir les oeuvres possibles
         - on boucle sur chaque oeuvre pour obtenir les exemples. On retourne 
           la liste obtenue.

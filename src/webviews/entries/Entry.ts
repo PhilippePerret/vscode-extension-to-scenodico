@@ -71,7 +71,7 @@ export class Entry extends CommonClassItem {
    * Recherche d'entrées par préfixe (optimisée)
    * Méthode spécifique Entry
    */
-  static searchMatchingTerm(prefix: string): CachedEntryData[] {
+  protected static searchMatchingItems(prefix: string): CachedEntryData[] {
     const prefixLower = StringNormalizer.toLower(prefix);
     const prefixRa = StringNormalizer.rationalize(prefix);
     

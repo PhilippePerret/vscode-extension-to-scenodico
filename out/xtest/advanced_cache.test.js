@@ -121,16 +121,16 @@ suite('Advanced Cache System', () => {
         await (0, test_utils_1.allPanelsReady)();
         const dictionaryPanel = PanelManager_1.PanelManager.getPanel('Dictionnaire');
         assert.ok(dictionaryPanel, 'Le panneau Dictionnaire existe');
-        // CHECK: Méthode searchMatchingTerm existe
-        const hasSearchMethod = await dictionaryPanel.executeScript('typeof Entry.searchMatchingTerm === "function"');
-        assert.strictEqual(hasSearchMethod, true, 'Entry should have searchMatchingTerm method');
+        // CHECK: Méthode searchMatchingItems existe
+        const hasSearchMethod = await dictionaryPanel.executeScript('typeof Entry.searchMatchingItems === "function"');
+        assert.strictEqual(hasSearchMethod, true, 'Entry should have searchMatchingItems method');
         // Test recherche avec un préfixe qui devrait donner des résultats
         const searchResults = await dictionaryPanel.executeScript(`
             const allEntries = Entry.getAll();
             if (allEntries.length > 0) {
                 // Prendre le premier caractère de la première entrée
                 const firstChar = allEntries[0].entree.charAt(0).toLowerCase();
-                const results = Entry.searchMatchingTerm(firstChar);
+                const results = Entry.searchMatchingItems(firstChar);
                 {
                     searchTerm: firstChar,
                     resultsCount: results.length,
@@ -148,9 +148,9 @@ suite('Advanced Cache System', () => {
         await (0, test_utils_1.allPanelsReady)();
         const oeuvresPanel = PanelManager_1.PanelManager.getPanel('Oeuvres');
         assert.ok(oeuvresPanel, 'Le panneau Oeuvres existe');
-        // CHECK: Méthode searchMatchingTerm existe
-        const hasSearchMethod = await oeuvresPanel.executeScript('typeof Oeuvre.searchMatchingTerm === "function"');
-        assert.strictEqual(hasSearchMethod, true, 'Oeuvre should have searchMatchingTerm method');
+        // CHECK: Méthode searchMatchingItems existe
+        const hasSearchMethod = await oeuvresPanel.executeScript('typeof Oeuvre.searchMatchingItems === "function"');
+        assert.strictEqual(hasSearchMethod, true, 'Oeuvre should have searchMatchingItems method');
         // Test recherche par titre
         const searchResults = await oeuvresPanel.executeScript(`
             const allOeuvres = Oeuvre.getAll();
@@ -158,7 +158,7 @@ suite('Advanced Cache System', () => {
                 // Prendre une partie du titre de la première oeuvre
                 const firstTitle = allOeuvres[0].titre_affiche;
                 const searchTerm = firstTitle.substring(0, 3).toLowerCase();
-                const results = Oeuvre.searchMatchingTerm(searchTerm);
+                const results = Oeuvre.searchMatchingItems(searchTerm);
                 {
                     searchTerm: searchTerm,
                     originalTitle: firstTitle,

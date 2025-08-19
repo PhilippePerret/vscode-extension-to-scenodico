@@ -4,6 +4,18 @@ import { Oeuvre } from './oeuvres/Oeuvre';
 import { Exemple } from './exemples/Exemple';
 import { CommonClassItem, ItemData } from './CommonClassItem';
 
+// Retourne la classe d'element en fonction du panneau
+// P.e. 'entries' => Entry (typeof CommonClassItem)
+function ItemClass(panelId: string): typeof CommonClassItem | undefined {
+  switch(panelId) {
+    case 'entries':
+      return Entry;
+    case 'oeuvres':
+      return Oeuvre;
+    case 'exemples':
+      return Exemple;
+  }
+}
 // VSCode API
 declare function acquireVsCodeApi(): any;
 const vscode = acquireVsCodeApi();
@@ -59,15 +71,30 @@ window.addEventListener('message', (event: MessageEvent<Message>) => {
       break;
     case 'cacheData':
       // Mise en cache des données du type
-      console.log("[WEBVIEW] Mise en cache des données du panneau %s", message.panelId);
       cacheAllData(message.items, message.panelId);
       break;
     case 'populate':
-      console.log('[CLIENT] Processing load message - panelId:', message.panelId, 'items count:', message.items?.length);
-      renderItems(message.items, message.panelId);
+      populatePanel(message.panelId);
       break;
   }
 });
+
+// Fonction généric pour mettre en cache toutes les données
+function cacheAllData(items: ItemData[], panelId: string): void {
+  (ItemClass(panelId) as typeof CommonClassItem).buildCache(items);
+  vscode.postMessage({ command: 'cache-ready' }); // pour l'instant de sert à rien
+}
+
+// Fonction générique pour peupler les panneaux (i.e. afficher les données)
+// NOTE TODO Pour le moment, +items+ ne sert à rien car on devrait récupérer
+// les données du cache de l'élément et non pas de la base de données.
+function populatePanel(panelId: string): void {
+  (ItemClass(panelId) as typeof CommonClassItem)
+    .finalizeCachedData()
+    .populatePanel()
+    .observePanel();
+  vscode.postMessage({ command: 'panel-ready' });
+}
 
 function queryDOMObject(message: Message): void {
   const element = document.querySelector(message.selector);
@@ -215,77 +242,6 @@ function handleExecuteScript(message: Message): void {
   });
 }
 
-// Retourne la classe d'element en fonction du panneau
-function getClassItem(panelId: string): typeof CommonClassItem | null {
-  switch(panelId) {
-    case 'entries':
-      return Entry;
-    case 'oeuvres':
-      return Oeuvre;
-    case 'exemples':
-      return Exemple;
-    default:
-      return null;
-  }
-}
-
-// Fonction généric pour mettre en cache toutes les données
-function cacheAllData(items: ItemData[], panelId: string): void {
-  const itemClass = getClassItem(panelId);
-  console.log(`[WEBVIEW] Mise en cache des données ${panelId}`);
-  itemClass?.buildCache(items);
-  vscode.postMessage({ command: 'cache-ready' }); // pour l'instant de sert à rien
-}
-
-// Generic render function for all panel types
-function renderItems(items: ItemData[], panelId: string): void {
-  const itemClass = getClassItem(panelId) as typeof CommonClassItem;
-  const container = itemClass.container as HTMLDivElement;
-
-  // Vider (au cas où) le container
-  container.innerHTML = '';
-  
-  if (items.length) {
-    // Bon, normalement, il y aura toujours des éléments
-    renderExistingItems(items, itemClass);
-  } else {
-    container.innerHTML = `<div class="no-${panelId}">${itemClass.error('no-items')}</div>`;
-  }
-  
-  // Signal que le panneau a fini de charger (même sans items)
-  vscode.postMessage({ command: 'panel-ready' });
-}
-
-function renderExistingItems(items: ItemData[], itemClass: typeof CommonClassItem): void {
-  items.forEach((item, index) => {
-    // Clone the template
-    const clone = itemClass.template!.content.cloneNode(true) as DocumentFragment;
-    
-    // Set the id and index attributes on the main element
-    const mainElement = clone.querySelector('.' + itemClass.minName);
-    if (mainElement) {
-      if (item.id) {
-        mainElement.setAttribute('data-id', item.id);
-      }
-      mainElement.setAttribute('data-index', index.toString());
-    }
-    
-    // Populate all elements with data-prop attributes
-    Object.keys(item).forEach(prop => {
-      const elements = clone.querySelectorAll(`[data-prop="${prop}"]`);
-      elements.forEach(element => {
-        element.textContent = itemClass.formateProp(prop, item[prop]);
-      });
-    });
-    
-    // Append to container
-    itemClass.container!.appendChild(clone);
-  });
-  
-  // Call afterDisplayItems for specific panel types with correct context
-  itemClass.afterDisplayItems.call(itemClass);
-}
-
 // Fonctions utilitaires communes
 export function hideElement(selector: string): void {
   const element = document.querySelector(selector);
@@ -338,5 +294,3 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
-console.log('[CLIENT] common.ts loaded and executed - All event listeners set up');
