@@ -385,9 +385,6 @@
       return {
         id: entry.id,
         entree: entry.entree,
-        definition: void 0,
-        // définition formatée
-        raw_definition: entry.definition,
         entree_min: entreeNormalized,
         entree_min_ra: entreeRationalized,
         categorie_id: entry.categorie_id,
@@ -410,7 +407,6 @@
       } else {
         item.categorie = "-- hors cat\xE9gorie --";
       }
-      item.definition = item.raw_definition;
     }
     /**
      * Recherche d'entrées par préfixe (optimisée)
@@ -433,183 +429,85 @@
   };
   window.Entry = Entry;
 
-  // src/webviews/exemples/Exemple.ts
-  var Exemple = class _Exemple extends CommonClassItem {
-    static minName = "exemple";
-    // Cache manager spécifique aux exemples
+  // src/webviews/oeuvres/Oeuvre.ts
+  var Oeuvre = class extends CommonClassItem {
+    static minName = "oeuvre";
+    static REG_ARTICLES = /\b(an|a|the|le|la|les|l'|de|du)\b/i;
+    // Cache manager spécifique aux oeuvres
     static _cacheManagerInstance = new CacheManager();
     static get cacheManager() {
       return this._cacheManagerInstance;
     }
+    // pour test
+    static get cacheManagerForced() {
+      return this.cacheManager;
+    }
     static ERRORS = {
-      "no-items": "Aucun exemple dans la base, bizarrement\u2026"
+      "no-items": "Aucune \u0153uvre dans la base, bizarrement\u2026"
     };
     static formateProp(prop, value) {
-      return value || "";
+      switch (prop) {
+        case "annee":
+          return value ? value.toString() : "";
+        default:
+          return value || "";
+      }
     }
     /**
-     * Finalise la donnée pour le cache
-     */
-    static finalizeCachedItem(exemple) {
-      let oeuvreTitle;
-      if (exemple.oeuvre_id) {
-        try {
-          if (Oeuvre.isCacheBuilt) {
-            const oeuvre = Oeuvre.get(exemple.oeuvre_id);
-            oeuvreTitle = oeuvre ? oeuvre.titre_affiche : void 0;
-          }
-        } catch (error) {
-          console.warn(`[Exemple] Could not resolve oeuvre ${exemple.oeuvre_id}:`, error);
-        }
-      }
-      exemple.oeuvre_titre = oeuvreTitle;
-      let entryEntree;
-      try {
-        if (Entry.isCacheBuilt) {
-          const entry = Entry.get(exemple.entry_id);
-          entryEntree = entry ? entry.entree : void 0;
-        }
-      } catch (error) {
-        console.warn(`[Exemple] Could not resolve entry ${exemple.entry_id}:`, error);
-      }
-      exemple.entry_entree = entryEntree;
-      return exemple;
-    }
-    /**
-     * Prépare un exemple pour le cache de recherche
+     * Prépare une œuvre pour le cache de recherche
      * SEULE méthode spécifique - le reste hérite de CommonClassItem !
-     * 
-     * TODO En fait, il faut une méthode en deux temps :
-     *  - le premier ne fait que mettre les données de l'item dans
-     *    la donnée cachée
-     *  - le deuxième temps, une fois toutes les données de tous les
-     *    types chargées, prépare les données spéciales qui ont besoin
-     *    des autres types.
      */
-    static prepareItemForCache(exemple) {
-      const contentNormalized = StringNormalizer.toLower(exemple.content);
-      const contentRationalized = StringNormalizer.rationalize(exemple.content);
+    static prepareItemForCache(oeuvre) {
+      const titres = [];
+      if (oeuvre.titre_francais) {
+        titres.push(StringNormalizer.rationalize(oeuvre.titre_francais));
+      }
+      if (oeuvre.titre_original) {
+        titres.push(StringNormalizer.rationalize(oeuvre.titre_original));
+      }
+      if (oeuvre.titre_affiche) {
+        titres.push(StringNormalizer.rationalize(oeuvre.titre_affiche));
+      }
+      titres.forEach((titre) => {
+        if (titre.match(this.REG_ARTICLES)) {
+          titres.push(titre.replace(this.REG_ARTICLES, ""));
+        }
+      });
+      const uniqTitres = [];
+      titres.forEach((titre) => {
+        if (uniqTitres.includes(titre)) {
+          return;
+        }
+        uniqTitres.push(titre);
+      });
+      const titresLookUp = uniqTitres.map((titre) => StringNormalizer.toLower(titre));
       return {
-        id: exemple.id,
-        content: exemple.content,
-        content_min: contentNormalized,
-        content_min_ra: contentRationalized,
-        oeuvre_id: exemple.oeuvre_id,
-        oeuvre_titre: void 0,
-        entry_id: exemple.entry_id,
-        entry_entree: void 0
+        id: oeuvre.id,
+        titre_affiche: oeuvre.titre_affiche,
+        titre_original: oeuvre.titre_original,
+        titre_francais: oeuvre.titre_francais,
+        titres,
+        titresLookUp,
+        annee: oeuvre.annee,
+        auteurs: oeuvre.auteurs
       };
     }
     /**
-     * Filtrage des exemples 
-     * Méthode spécifique Exemple
-     * 
-     * En mode "normal"
-     * Le filtrage, sauf indication contraire, se fait par rapport aux
-     * titres de film. Le mécanisme est le suivant : l'user tape un
-     * début de titres de film. On en déduit les titres grâce à la
-     * méthode de la classe Oeuvre. On prend l'identifiant et on 
-     * affiche tous les exemples du film voulu.
-     * 
-     * En mode "Entrée", l'utilisateur tape une entrée du dictionnaire
-     * et la méthode renvoie tous les exemples concernant cette entrée.
-     * 
-     * En mode "Contenu", la recherche se fait sur le contenu, partout
-     * et sur toutes les entrées.
-     * 
-     * QUESTION Comment faire la différence entre les différents modes
-     * de recherche ? peut-être avec un préfix ('content' pour recher-
-     * che sur le contenu, 'dico:' ou 'entree:' pour la recherche sur 
-     * les entrées et rien pour la recherche sur le film)
+     * Recherche d'œuvres par titre (optimisée)
+     * Méthode spécifique Oeuvre
      */
-    static searchMatchingItems(searched) {
-      const searchLower = StringNormalizer.toLower(searched);
-      const searchRa = StringNormalizer.rationalize(searched);
-      const mode = "by oeuvre";
-      switch (mode) {
-        case "by oeuvre":
-          const oeuvreId = "DITD";
-          return this.getByOeuvre(oeuvreId);
-        case "by entry":
-          return [];
-        case "by content":
-          return this.filter((exemple) => {
-            return exemple.content_min.includes(searchLower) || exemple.content_min_ra.includes(searchRa);
-          });
-        default:
-          return [];
-      }
-    }
-    /**
-     * Récupère tous les exemples associés à une oeuvre
-     * Méthode spécifique Exemple
-     */
-    static getByOeuvre(oeuvreId) {
-      return this.filter((exemple) => exemple.oeuvre_id === oeuvreId);
-    }
-    /**
-     * Récupère tous les exemples associés à une entrée
-     * Méthode spécifique Exemple
-     */
-    static getByEntry(entryId) {
-      return this.filter((exemple) => exemple.entry_id === entryId);
-    }
-    // Méthodes typées pour plus de confort (optionnel)
-    static get(id) {
-      return super.get(id);
-    }
-    static getAll() {
-      return super.getAll();
-    }
-    /**
-     * Post-traitement après affichage : ajouter les titres des films
-     * IMPORTANT: Cette méthode est appelée après l'affichage initial
-     * 
-     * Fonctionnement
-     * --------------
-     * Pour optimiser le traitement, en considérant qu'on peut avoir
-     * des milliers d'exemples, on ne passe pas par le DOM mais par
-     * les données (getAll). Puisqu'elles sont relevées dans l'ordre,
-     * c'est-à-dire par film, il suffit d'ajouter un titre au premier
-     * exemple qu'on trouve qui a un film différent du précédent.
-     * 
-     */
-    static afterDisplayItems() {
-      console.log("[EXEMPLES] afterDisplayItems - Grouping examples by oeuvre");
-      const mainConteneur = this.container;
-      if (mainConteneur === null) {
-        console.error("[EXEMPLES] No container found for grouping");
-        return false;
-      }
-      let currentOeuvreId = "";
-      _Exemple.getAll().forEach((exemple) => {
-        if (exemple.oeuvre_id === currentOeuvreId) {
-          return;
-        }
-        const domObj = document.querySelector(`main#items > div.item[data-id="${exemple.id}"]`);
-        currentOeuvreId = exemple.oeuvre_id;
-        const titleObj = document.createElement("h2");
-        const oeuvre = Oeuvre.get(currentOeuvreId);
-        if (!oeuvre) {
-          console.log("Oeuvre introuvable, Oeuvre.cacheManager vaut", Oeuvre.cacheManagerForced);
-          throw new Error("L'\u0153uvre devrait \xEAtre d\xE9finie.");
-        }
-        console.log("oeuvre r\xE9pondant \xE0 l'id %s", currentOeuvreId, oeuvre);
-        const titre = oeuvre ? oeuvre.titre_affiche : "\u0153uvre introuvable";
-        console.log("Titre", titre);
-        titleObj.innerHTML = titre;
-        const btnAdd = document.createElement("button");
-        btnAdd.className = "btn-add";
-        btnAdd.innerHTML = '<i class="codicon codicon-add"></i>';
-        btnAdd.setAttribute("data-oeuvre_id", currentOeuvreId);
-        titleObj.appendChild(btnAdd);
-        domObj.parentNode?.insertBefore(titleObj, domObj);
+    static searchMatchingItems(searchTerm) {
+      const searchLower = StringNormalizer.toLower(searchTerm);
+      return this.filter((oeuvre) => {
+        return oeuvre.titresLookUp.some((titre) => {
+          const res = titre.startsWith(searchLower);
+          console.log("Le titre %s r\xE9pond %s avec %s", oeuvre.titre_affiche, res, searchLower);
+          return res;
+        });
       });
-      console.log("[EXEMPLES] Titling completed");
-      return true;
     }
   };
-  window.Exemple = Exemple;
+  window.Oeuvre = Oeuvre;
 
   // src/webviews/common.ts
   function ItemClass(panelId) {
@@ -807,84 +705,182 @@
     }
   });
 
-  // src/webviews/oeuvres/Oeuvre.ts
-  var Oeuvre = class extends CommonClassItem {
-    static minName = "oeuvre";
-    static REG_ARTICLES = /\b(an|a|the|le|la|les|l'|de|du)\b/i;
-    // Cache manager spécifique aux oeuvres
+  // src/webviews/exemples/Exemple.ts
+  var Exemple = class _Exemple extends CommonClassItem {
+    static minName = "exemple";
+    // Cache manager spécifique aux exemples
     static _cacheManagerInstance = new CacheManager();
     static get cacheManager() {
       return this._cacheManagerInstance;
     }
-    // pour test
-    static get cacheManagerForced() {
-      return this.cacheManager;
-    }
     static ERRORS = {
-      "no-items": "Aucune \u0153uvre dans la base, bizarrement\u2026"
+      "no-items": "Aucun exemple dans la base, bizarrement\u2026"
     };
     static formateProp(prop, value) {
-      switch (prop) {
-        case "annee":
-          return value ? value.toString() : "";
-        default:
-          return value || "";
-      }
+      return value || "";
     }
     /**
-     * Prépare une œuvre pour le cache de recherche
-     * SEULE méthode spécifique - le reste hérite de CommonClassItem !
+     * Finalise la donnée pour le cache
      */
-    static prepareItemForCache(oeuvre) {
-      const titres = [];
-      if (oeuvre.titre_francais) {
-        titres.push(StringNormalizer.rationalize(oeuvre.titre_francais));
-      }
-      if (oeuvre.titre_original) {
-        titres.push(StringNormalizer.rationalize(oeuvre.titre_original));
-      }
-      if (oeuvre.titre_affiche) {
-        titres.push(StringNormalizer.rationalize(oeuvre.titre_affiche));
-      }
-      titres.forEach((titre) => {
-        if (titre.match(this.REG_ARTICLES)) {
-          titres.push(titre.replace(this.REG_ARTICLES, ""));
+    static finalizeCachedItem(exemple) {
+      let oeuvreTitle;
+      if (exemple.oeuvre_id) {
+        try {
+          if (Oeuvre.isCacheBuilt) {
+            const oeuvre = Oeuvre.get(exemple.oeuvre_id);
+            oeuvreTitle = oeuvre ? oeuvre.titre_affiche : void 0;
+          }
+        } catch (error) {
+          console.warn(`[Exemple] Could not resolve oeuvre ${exemple.oeuvre_id}:`, error);
         }
-      });
-      const uniqTitres = [];
-      titres.forEach((titre) => {
-        if (uniqTitres.includes(titre)) {
-          return;
+      }
+      exemple.oeuvre_titre = oeuvreTitle;
+      let entryEntree;
+      try {
+        if (Entry.isCacheBuilt) {
+          const entry = Entry.get(exemple.entry_id);
+          entryEntree = entry ? entry.entree : void 0;
         }
-        uniqTitres.push(titre);
-      });
-      const titresLookUp = uniqTitres.map((titre) => StringNormalizer.toLower(titre));
+      } catch (error) {
+        console.warn(`[Exemple] Could not resolve entry ${exemple.entry_id}:`, error);
+      }
+      exemple.entry_entree = entryEntree;
+      return exemple;
+    }
+    /**
+     * Prépare un exemple pour le cache de recherche
+     * SEULE méthode spécifique - le reste hérite de CommonClassItem !
+     * 
+     * TODO En fait, il faut une méthode en deux temps :
+     *  - le premier ne fait que mettre les données de l'item dans
+     *    la donnée cachée
+     *  - le deuxième temps, une fois toutes les données de tous les
+     *    types chargées, prépare les données spéciales qui ont besoin
+     *    des autres types.
+     */
+    static prepareItemForCache(exemple) {
+      const contentNormalized = StringNormalizer.toLower(exemple.content);
+      const contentRationalized = StringNormalizer.rationalize(exemple.content);
       return {
-        id: oeuvre.id,
-        titre_affiche: oeuvre.titre_affiche,
-        titre_original: oeuvre.titre_original,
-        titre_francais: oeuvre.titre_francais,
-        titres,
-        titresLookUp,
-        annee: oeuvre.annee,
-        auteurs: oeuvre.auteurs
+        id: exemple.id,
+        content: exemple.content,
+        content_min: contentNormalized,
+        content_min_ra: contentRationalized,
+        oeuvre_id: exemple.oeuvre_id,
+        oeuvre_titre: void 0,
+        entry_id: exemple.entry_id,
+        entry_entree: void 0
       };
     }
     /**
-     * Recherche d'œuvres par titre (optimisée)
-     * Méthode spécifique Oeuvre
+     * Filtrage des exemples 
+     * Méthode spécifique Exemple
+     * 
+     * En mode "normal"
+     * Le filtrage, sauf indication contraire, se fait par rapport aux
+     * titres de film. Le mécanisme est le suivant : l'user tape un
+     * début de titres de film. On en déduit les titres grâce à la
+     * méthode de la classe Oeuvre. On prend l'identifiant et on 
+     * affiche tous les exemples du film voulu.
+     * 
+     * En mode "Entrée", l'utilisateur tape une entrée du dictionnaire
+     * et la méthode renvoie tous les exemples concernant cette entrée.
+     * 
+     * En mode "Contenu", la recherche se fait sur le contenu, partout
+     * et sur toutes les entrées.
+     * 
+     * QUESTION Comment faire la différence entre les différents modes
+     * de recherche ? peut-être avec un préfix ('content' pour recher-
+     * che sur le contenu, 'dico:' ou 'entree:' pour la recherche sur 
+     * les entrées et rien pour la recherche sur le film)
      */
-    static searchMatchingItems(searchTerm) {
-      const searchLower = StringNormalizer.toLower(searchTerm);
-      return this.filter((oeuvre) => {
-        return oeuvre.titresLookUp.some((titre) => {
-          const res = titre.startsWith(searchLower);
-          console.log("Le titre %s r\xE9pond %s avec %s", oeuvre.titre_affiche, res, searchLower);
-          return res;
-        });
+    static searchMatchingItems(searched) {
+      const searchLower = StringNormalizer.toLower(searched);
+      const searchRa = StringNormalizer.rationalize(searched);
+      const mode = "by oeuvre";
+      switch (mode) {
+        case "by oeuvre":
+          const oeuvreId = "DITD";
+          return this.getByOeuvre(oeuvreId);
+        case "by entry":
+          return [];
+        case "by content":
+          return this.filter((exemple) => {
+            return exemple.content_min.includes(searchLower) || exemple.content_min_ra.includes(searchRa);
+          });
+        default:
+          return [];
+      }
+    }
+    /**
+     * Récupère tous les exemples associés à une oeuvre
+     * Méthode spécifique Exemple
+     */
+    static getByOeuvre(oeuvreId) {
+      return this.filter((exemple) => exemple.oeuvre_id === oeuvreId);
+    }
+    /**
+     * Récupère tous les exemples associés à une entrée
+     * Méthode spécifique Exemple
+     */
+    static getByEntry(entryId) {
+      return this.filter((exemple) => exemple.entry_id === entryId);
+    }
+    // Méthodes typées pour plus de confort (optionnel)
+    static get(id) {
+      return super.get(id);
+    }
+    static getAll() {
+      return super.getAll();
+    }
+    /**
+     * Post-traitement après affichage : ajouter les titres des films
+     * IMPORTANT: Cette méthode est appelée après l'affichage initial
+     * 
+     * Fonctionnement
+     * --------------
+     * Pour optimiser le traitement, en considérant qu'on peut avoir
+     * des milliers d'exemples, on ne passe pas par le DOM mais par
+     * les données (getAll). Puisqu'elles sont relevées dans l'ordre,
+     * c'est-à-dire par film, il suffit d'ajouter un titre au premier
+     * exemple qu'on trouve qui a un film différent du précédent.
+     * 
+     */
+    static afterDisplayItems() {
+      console.log("[EXEMPLES] afterDisplayItems - Grouping examples by oeuvre");
+      const mainConteneur = this.container;
+      if (mainConteneur === null) {
+        console.error("[EXEMPLES] No container found for grouping");
+        return false;
+      }
+      let currentOeuvreId = "";
+      _Exemple.getAll().forEach((exemple) => {
+        if (exemple.oeuvre_id === currentOeuvreId) {
+          return;
+        }
+        const domObj = document.querySelector(`main#items > div.item[data-id="${exemple.id}"]`);
+        currentOeuvreId = exemple.oeuvre_id;
+        const titleObj = document.createElement("h2");
+        const oeuvre = Oeuvre.get(currentOeuvreId);
+        if (!oeuvre) {
+          console.log("Oeuvre introuvable, Oeuvre.cacheManager vaut", Oeuvre.cacheManagerForced);
+          throw new Error("L'\u0153uvre devrait \xEAtre d\xE9finie.");
+        }
+        console.log("oeuvre r\xE9pondant \xE0 l'id %s", currentOeuvreId, oeuvre);
+        const titre = oeuvre ? oeuvre.titre_affiche : "\u0153uvre introuvable";
+        console.log("Titre", titre);
+        titleObj.innerHTML = titre;
+        const btnAdd = document.createElement("button");
+        btnAdd.className = "btn-add";
+        btnAdd.innerHTML = '<i class="codicon codicon-add"></i>';
+        btnAdd.setAttribute("data-oeuvre_id", currentOeuvreId);
+        titleObj.appendChild(btnAdd);
+        domObj.parentNode?.insertBefore(titleObj, domObj);
       });
+      console.log("[EXEMPLES] Titling completed");
+      return true;
     }
   };
-  window.Oeuvre = Oeuvre;
+  window.Exemple = Exemple;
 })();
-//# sourceMappingURL=oeuvres-bundle.js.map
+//# sourceMappingURL=exemples-bundle.js.map

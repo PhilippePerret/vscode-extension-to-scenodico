@@ -5,6 +5,9 @@
     _cache = /* @__PURE__ */ new Map();
     _isBuilt = false;
     _isPrepared = false;
+    get prepared() {
+      return this._isPrepared === true;
+    }
     prepareCacheWithData(rawData, prepareItemForCacheMethod, debugName) {
       this._cache.clear();
       rawData.forEach((item) => {
@@ -13,19 +16,26 @@
       this._isPrepared = true;
       console.log(`Cache pr\xE9par\xE9 pour ${debugName}: ${this._cache.size} \xE9l\xE9ments`);
     }
-    /**
-     * Construit le cache à partir des données brutes
-     * @param rawData - Données brutes de la base de données
-     * @param prepareFunction - Fonction de préparation des données pour le cache
-     * @param debugName - Nom pour les logs de debug
-     */
-    buildCache(finalizeCachedItemMethod, debugName) {
-      this._cache.forEach((item) => {
-        this._cache.set(item.id, finalizeCachedItemMethod(item));
-      });
-      this._isBuilt = true;
-      console.log(`Cache construit pour ${debugName} \xE9l\xE9ments`);
+    finalizeCachedData(finalizeItemMethod, debugName) {
+      this.forEach((item) => finalizeItemMethod(item));
     }
+    // /**
+    //  * Construit le cache à partir des données brutes
+    //  * @param rawData - Données brutes de la base de données
+    //  * @param prepareFunction - Fonction de préparation des données pour le cache
+    //  * @param debugName - Nom pour les logs de debug
+    //  */
+    // buildCache(
+    //   finalizeCachedItemMethod: (item: TCached) => TCached,
+    //   debugName: string
+    // ): void {
+    //   // On boucle sur les données qui ont été mises en cache.
+    //   this._cache.forEach(item => {
+    //     this._cache.set(item.id, finalizeCachedItemMethod(item));
+    //   });
+    //   this._isBuilt = true;
+    //   console.log(`Cache construit pour ${debugName} éléments`);
+    // }
     /**
      * Récupère un élément par son ID
      * @param id - ID de l'élément à récupérer
@@ -138,6 +148,10 @@
     static get cacheManager() {
       throw new Error("cacheManager getter must be implemented by subclass");
     }
+    // Pour tester
+    static get cacheIsInitied() {
+      return this.cacheManager.prepared === true;
+    }
     static get container() {
       return this._container || (this._container = document.querySelector("main#items"));
     }
@@ -162,6 +176,10 @@
     static prepareItemForCache(item) {
       throw new Error("prepareItemForCache must be implemented by subclass");
     }
+    // Doit être écrasé par chaque classe d'élément
+    static finalizeCachedItem(item) {
+      throw new Error(`finalizeCachedItem doit \xEAtre impl\xE9ment\xE9 par chaque \xE9l\xE9ment`);
+    }
     // Doit être écrasé par chaque classe fille (il semble que je doive
     // faire comme ça pour ne pas avoir d'erreur d'absence de méthode)
     static searchMatchingItems(searched) {
@@ -174,16 +192,14 @@
      * éléments) on pourra préparer chaque item.
      */
     static buildCache(bddData) {
-      console.log(`[${this.name}] buildCache called with ${bddData.length} items`);
       try {
         this.cacheManager.prepareCacheWithData(
           bddData,
           (item) => this.prepareItemForCache(item),
           this.minName
         );
-        console.log(`[${this.name}] Cache built successfully, size: ${this.cacheSize}`);
       } catch (error) {
-        console.error(`[${this.name}] Cache build failed:`, error);
+        console.error(`[WEBVIEW ${this.name}] Cache build failed:`, error);
         throw error;
       }
     }
@@ -192,7 +208,14 @@
      * chargées pour tous les éléments
      */
     static finalizeCachedData() {
-      this.forEach((item) => this.prepareItemForCache(item));
+      try {
+        this.cacheManager.finalizeCachedData(
+          (item) => this.finalizeCachedItem(item),
+          this.minName
+        );
+      } catch (error) {
+        console.error(`[WEBVIEW ${this.name}] Finalisation cached data failed:`, error);
+      }
       return this;
     }
     /**
@@ -813,20 +836,35 @@
     static prepareItemForCache(entry) {
       const entreeNormalized = StringNormalizer.toLower(entry.entree);
       const entreeRationalized = StringNormalizer.rationalize(entry.entree);
-      let categorie;
-      if (entry.categorie_id && this.cacheManager.has(entry.categorie_id)) {
-        const categorieEntry = this.cacheManager.get(entry.categorie_id);
-        categorie = categorieEntry ? categorieEntry.entree : void 0;
-      }
       return {
         id: entry.id,
         entree: entry.entree,
+        definition: void 0,
+        // définition formatée
+        raw_definition: entry.definition,
         entree_min: entreeNormalized,
         entree_min_ra: entreeRationalized,
         categorie_id: entry.categorie_id,
-        categorie,
+        categorie: void 0,
         genre: entry.genre
       };
+    }
+    /**
+     * Méthode qui, après chargement de toutes les données, finalise la
+     * donnée cache
+     * 
+     * @param item Entrée du dictionnaire
+     */
+    static finalizeCachedItem(item) {
+      let categorie;
+      if (item.categorie_id) {
+        const categorieEntry = this.cacheManager.get(item.categorie_id);
+        categorie = categorieEntry ? categorieEntry.entree : void 0;
+        item.categorie = categorie;
+      } else {
+        item.categorie = "-- hors cat\xE9gorie --";
+      }
+      item.definition = item.raw_definition;
     }
     /**
      * Recherche d'entrées par préfixe (optimisée)

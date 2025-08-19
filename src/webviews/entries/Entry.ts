@@ -1,7 +1,7 @@
 import '../common';
 import { CommonClassItem, ItemData } from '../CommonClassItem';
 import { CachedEntryData, StringNormalizer } from '../CacheTypes';
-import { CacheManager } from '../CacheManager';
+import { CacheableItem, CacheManager } from '../CacheManager';
 
 export interface EntryData extends ItemData {
   entree: string;
@@ -49,25 +49,43 @@ export class Entry extends CommonClassItem {
   static prepareItemForCache(entry: EntryData): CachedEntryData {
     const entreeNormalized = StringNormalizer.toLower(entry.entree);
     const entreeRationalized = StringNormalizer.rationalize(entry.entree);
-    
-    // Résoudre la catégorie si possible (nécessite que le cache soit déjà construit)
-    let categorie: string | undefined;
-    if (entry.categorie_id && this.cacheManager.has(entry.categorie_id)) {
-      const categorieEntry = this.cacheManager.get(entry.categorie_id);
-      categorie = categorieEntry ? (categorieEntry as CachedEntryData).entree : undefined;
-    }
-    
+   
     return {
       id: entry.id,
       entree: entry.entree,
+      definition: undefined, // définition formatée
+      raw_definition: entry.definition,
       entree_min: entreeNormalized,
       entree_min_ra: entreeRationalized,
       categorie_id: entry.categorie_id,
-      categorie: categorie,
+      categorie: undefined,
       genre: entry.genre
     };
   }
 
+
+  /**
+   * Méthode qui, après chargement de toutes les données, finalise la
+   * donnée cache
+   * 
+   * @param item Entrée du dictionnaire
+   */
+  static finalizeCachedItem(item: CacheableItem): void {
+    // Résoudre la catégorie (c'est possible maintenant que toutes les
+    // données sont connées) 
+    let categorie: string | undefined;
+    if (item.categorie_id) {
+      const categorieEntry = this.cacheManager.get(item.categorie_id);
+      categorie = categorieEntry ? (categorieEntry as CachedEntryData).entree : undefined;
+      item.categorie = categorie ; 
+    } else {
+      item.categorie = '-- hors catégorie --' ;
+    }
+    
+    // Mise en forme de la définition
+    item.definition = item.raw_definition ; // TODO à mettre en forme
+  }
+  
   /**
    * Recherche d'entrées par préfixe (optimisée)
    * Méthode spécifique Entry

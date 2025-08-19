@@ -18,7 +18,11 @@ export abstract class CommonClassItem {
   protected static get cacheManager(): CacheManager<any, any> {
     throw new Error('cacheManager getter must be implemented by subclass');
   }
-
+  // Pour tester
+  static get cacheIsInitied(): boolean {
+    return this.cacheManager.prepared === true ;
+  }
+ 
   static get container(): HTMLElement | null {
     return this._container || (this._container = document.querySelector('main#items'));
   }
@@ -48,6 +52,10 @@ export abstract class CommonClassItem {
   static prepareItemForCache(item: ItemData): any {
     throw new Error('prepareItemForCache must be implemented by subclass');
   }
+  // Doit être écrasé par chaque classe d'élément
+  static finalizeCachedItem(item: CacheableItem): void {
+    throw new Error(`finalizeCachedItem doit être implémenté par chaque élément`);
+  }
   // Doit être écrasé par chaque classe fille (il semble que je doive
   // faire comme ça pour ne pas avoir d'erreur d'absence de méthode)
   protected static searchMatchingItems(searched: string): AnyCachedData[]{
@@ -61,16 +69,14 @@ export abstract class CommonClassItem {
    * éléments) on pourra préparer chaque item.
    */
   static buildCache(bddData: ItemData[]): void {
-    console.log(`[${this.name}] buildCache called with ${bddData.length} items`);
     try {
       this.cacheManager.prepareCacheWithData(
         bddData,
         (item) => this.prepareItemForCache(item),
         (this as any).minName
       );
-      console.log(`[${this.name}] Cache built successfully, size: ${this.cacheSize}`);
     } catch (error) {
-      console.error(`[${this.name}] Cache build failed:`, error);
+      console.error(`[WEBVIEW ${this.name}] Cache build failed:`, error);
       throw error;
     }
   }
@@ -80,7 +86,14 @@ export abstract class CommonClassItem {
    * chargées pour tous les éléments
    */
   public static finalizeCachedData(): typeof CommonClassItem {
-    this.forEach(item => this.prepareItemForCache(item));
+    try {
+      this.cacheManager.finalizeCachedData(
+        (item) => this.finalizeCachedItem(item),
+        (this as any).minName
+      );
+    } catch (error) {
+      console.error(`[WEBVIEW ${this.name}] Finalisation cached data failed:`, error);
+    }
     return this; // pour le chainage
   }
   /**

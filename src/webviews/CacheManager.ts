@@ -1,3 +1,5 @@
+import { AnyCachedData } from "./CacheTypes";
+
 export interface CacheableItem {
   id: string;
   [key: string]: any;
@@ -10,9 +12,13 @@ export interface CacheableItem {
 export class CacheManager<TRaw extends CacheableItem, TCached extends CacheableItem> {
   private _cache: Map<string, TCached> = new Map();
   private _isBuilt: boolean = false;
-  private _isPrepared: boolean = false;
+  protected _isPrepared: boolean = false;
+  
+  public get prepared() {
+    return this._isPrepared === true ; 
+  }
 
-  prepareCacheWithData(
+ prepareCacheWithData(
     rawData: TRaw[],
     prepareItemForCacheMethod: (item: TRaw) => TCached,
     debugName:string
@@ -27,24 +33,31 @@ export class CacheManager<TRaw extends CacheableItem, TCached extends CacheableI
     this._isPrepared = true ;
     console.log(`Cache préparé pour ${debugName}: ${this._cache.size} éléments`);
   }
-  /**
-   * Construit le cache à partir des données brutes
-   * @param rawData - Données brutes de la base de données
-   * @param prepareFunction - Fonction de préparation des données pour le cache
-   * @param debugName - Nom pour les logs de debug
-   */
-  buildCache(
-    finalizeCachedItemMethod: (item: TCached) => TCached,
+  
+  finalizeCachedData(
+    finalizeItemMethod: (item: CacheableItem) => void,
     debugName: string
   ): void {
-    // On boucle sur les données qui ont été mises en cache.
-    this._cache.forEach(item => {
-      this._cache.set(item.id, finalizeCachedItemMethod(item));
-    });
-    
-    this._isBuilt = true;
-    console.log(`Cache construit pour ${debugName} éléments`);
+    this.forEach(item => finalizeItemMethod(item));
   }
+  // /**
+  //  * Construit le cache à partir des données brutes
+  //  * @param rawData - Données brutes de la base de données
+  //  * @param prepareFunction - Fonction de préparation des données pour le cache
+  //  * @param debugName - Nom pour les logs de debug
+  //  */
+  // buildCache(
+  //   finalizeCachedItemMethod: (item: TCached) => TCached,
+  //   debugName: string
+  // ): void {
+  //   // On boucle sur les données qui ont été mises en cache.
+  //   this._cache.forEach(item => {
+  //     this._cache.set(item.id, finalizeCachedItemMethod(item));
+  //   });
+    
+  //   this._isBuilt = true;
+  //   console.log(`Cache construit pour ${debugName} éléments`);
+  // }
 
   /**
    * Récupère un élément par son ID
