@@ -82,6 +82,7 @@ export class Oeuvre extends CommonClassItem {
       titresLookUp: titresLookUp,
       annee: oeuvre.annee,
       auteurs: oeuvre.auteurs,
+      resume: oeuvre.resume
     };
   }
 
@@ -94,6 +95,10 @@ export class Oeuvre extends CommonClassItem {
     if ( item.titre_francais && item.titre_francais !== item.titre_original) {
       item.titre_francais_formated = item.titre_francais;
     }
+
+    // Pour le moment, le résumé reste le même, mais ensuite il sera
+    // possible de le faire en markdown
+    item.resume_formated = item.resume;
 
     // Mettre en forme les auteurs
     const regauteurs = /(.+?) ([A-Z \-]+?)\(([HF]), (.+?)\)/ ;

@@ -412,7 +412,8 @@
         titres,
         titresLookUp,
         annee: oeuvre.annee,
-        auteurs: oeuvre.auteurs
+        auteurs: oeuvre.auteurs,
+        resume: oeuvre.resume
       };
     }
     static finalizeCachedItem(item) {
@@ -422,6 +423,7 @@
       if (item.titre_francais && item.titre_francais !== item.titre_original) {
         item.titre_francais_formated = item.titre_francais;
       }
+      item.resume_formated = item.resume;
       const regauteurs = /(.+?) ([A-Z \-]+?)\(([HF]), (.+?)\)/;
       let auteurs = item.auteurs;
       while (auteurs.match(regauteurs)) {
@@ -846,14 +848,6 @@
       "adj": "adj.",
       "adv": "adv."
     };
-    static formateProp(prop, value) {
-      switch (prop) {
-        case "genre":
-          return this.GENRES[value] || `# genre ${value} inconnu #`;
-        default:
-          return value || "";
-      }
-    }
     /**
      * Prépare une entrée pour le cache de recherche
      * SEULE méthode spécifique - le reste hérite de CommonClassItem !
@@ -871,7 +865,9 @@
         entree_min_ra: entreeRationalized,
         categorie_id: entry.categorie_id,
         categorie: void 0,
-        genre: entry.genre
+        genre: entry.genre,
+        genre_formated: void 0
+        // sera défini plus tard
       };
     }
     /**
@@ -890,6 +886,7 @@
         item.categorie = "-- hors cat\xE9gorie --";
       }
       item.definition = item.raw_definition;
+      item.genre_formated = this.GENRES[item.genre] || `# genre ${item.genre} inconnu #`;
     }
     /**
      * Recherche d'entrées par préfixe (optimisée)

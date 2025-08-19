@@ -39,7 +39,8 @@ export interface CachedEntryData extends CacheableItem {
   entree_min_ra: string;           // Version rationalisée (sans accents) 
   categorie_id?: string;
   categorie?: string;              // Nom de la catégorie (résolu via Entry.get())
-  genre?: string;
+  genre: string;
+  genre_formated?: string;
 }
 
 /**
@@ -48,6 +49,8 @@ export interface CachedEntryData extends CacheableItem {
 export interface CachedOeuvreData extends CacheableItem {
   id: string;
   titre_affiche: string;
+  resume: string;
+  resume_formated?: string;
   titre_original?: string;
   titre_francais?: string;
   titre_affiche_formated?: string;

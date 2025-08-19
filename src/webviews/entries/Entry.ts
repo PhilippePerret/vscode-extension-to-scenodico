@@ -5,7 +5,7 @@ import { CacheableItem, CacheManager } from '../CacheManager';
 
 export interface EntryData extends ItemData {
   entree: string;
-  genre?: string;
+  genre: string;
   categorie_id?: string;
   definition?: string;
 }
@@ -33,15 +33,6 @@ export class Entry extends CommonClassItem {
     'adv': 'adv.'
   };
 
-  static formateProp(prop: string, value: any): string {
-    switch(prop) {
-      case 'genre':
-        return this.GENRES[value as keyof typeof this.GENRES] || `# genre ${value} inconnu #`;
-      default: 
-        return value || '';
-    }
-  }
-
   /**
    * Prépare une entrée pour le cache de recherche
    * SEULE méthode spécifique - le reste hérite de CommonClassItem !
@@ -59,7 +50,8 @@ export class Entry extends CommonClassItem {
       entree_min_ra: entreeRationalized,
       categorie_id: entry.categorie_id,
       categorie: undefined,
-      genre: entry.genre
+      genre: entry.genre,
+      genre_formated: undefined, // sera défini plus tard
     };
   }
 
@@ -84,6 +76,9 @@ export class Entry extends CommonClassItem {
     
     // Mise en forme de la définition
     item.definition = item.raw_definition ; // TODO à mettre en forme
+
+    // Mise en forme du genre
+    item.genre_formated = this.GENRES[item.genre as keyof typeof this.GENRES] || `# genre ${item.genre} inconnu #`;
   }
   
   /**
