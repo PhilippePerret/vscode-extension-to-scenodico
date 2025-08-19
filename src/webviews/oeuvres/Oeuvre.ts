@@ -1,5 +1,5 @@
 import '../common';
-import { CacheManager } from '../CacheManager';
+import { CacheableItem, CacheManager } from '../CacheManager';
 import { CachedOeuvreData, StringNormalizer } from '../CacheTypes';
 import { CommonClassItem, ItemData } from '../CommonClassItem';
 
@@ -83,6 +83,32 @@ export class Oeuvre extends CommonClassItem {
       annee: oeuvre.annee,
       auteurs: oeuvre.auteurs,
     };
+  }
+
+  static finalizeCachedItem(item: CacheableItem): void {
+    // rien à faire pour le moment, mais il faut que la fonction
+    // soit implémentée.
+    if ( item.titre_affiche !== item.titre_original ) {
+      item.titre_affiche_formated = item.titre_affiche;
+    }
+    if ( item.titre_francais && item.titre_francais !== item.titre_original) {
+      item.titre_francais_formated = item.titre_francais;
+    }
+
+    // Mettre en forme les auteurs
+    const regauteurs = /(.+?) ([A-Z \-]+?)\(([HF]), (.+?)\)/ ;
+    let auteurs = item.auteurs;
+    while (auteurs.match(regauteurs)) {
+      auteurs = auteurs.replace(regauteurs, (_: string, prenom: string, nom: string, sexe: string, fonctions: string): string => {
+        return `
+        <span class="prenom">${prenom}</span>
+        <span class="nom">${nom}</span>
+        <span class="sexe">${sexe}</span>
+        (<span class="fonctions">${fonctions}</span>)
+        `;
+      });
+    }
+    item.auteurs_formated = auteurs.trim() ; 
   }
 
   /**

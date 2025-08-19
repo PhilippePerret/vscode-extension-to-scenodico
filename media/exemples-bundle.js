@@ -104,7 +104,11 @@
         Object.keys(item).forEach((prop) => {
           const elements = clone.querySelectorAll(`[data-prop="${prop}"]`);
           elements.forEach((element) => {
-            element.textContent = this.formateProp(prop, item[prop]);
+            if (item[prop].startsWith("<")) {
+              element.innerHTML = item[prop];
+            } else {
+              element.textContent = item[prop];
+            }
           });
         });
         container.appendChild(clone);
@@ -495,6 +499,27 @@
         annee: oeuvre.annee,
         auteurs: oeuvre.auteurs
       };
+    }
+    static finalizeCachedItem(item) {
+      if (item.titre_affiche !== item.titre_original) {
+        item.titre_affiche_formated = item.titre_affiche;
+      }
+      if (item.titre_francais && item.titre_francais !== item.titre_original) {
+        item.titre_francais_formated = item.titre_francais;
+      }
+      const regauteurs = /(.+?) ([A-Z \-]+?)\(([HF]), (.+?)\)/;
+      let auteurs = item.auteurs;
+      while (auteurs.match(regauteurs)) {
+        auteurs = auteurs.replace(regauteurs, (_, prenom, nom, sexe, fonctions) => {
+          return `
+        <span class="prenom">${prenom}</span>
+        <span class="nom">${nom}</span>
+        <span class="sexe">${sexe}</span>
+        (<span class="fonctions">${fonctions}</span>)
+        `;
+        });
+      }
+      item.auteurs_formated = auteurs.trim();
     }
     /**
      * Recherche d'œuvres par titre (optimisée)

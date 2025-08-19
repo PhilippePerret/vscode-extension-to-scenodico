@@ -185,7 +185,12 @@ export class PanelManager {
 //*/
  
    // Pour essayer de peupler petit à petit 
-			this.populatePanel(context, dictionnaire.webview, Entry);
+	  await Promise.all([
+			this.populatePanel(context, dictionnaire.webview, Entry),
+			this.populatePanel(context, oeuvres.webview, Oeuvre)
+
+		]);
+		console.info("[EXTENSION] Fin de la population des trois panneaux.");
 	}
 	/**
 	 * Generic method to generate HTML for any panel using Model classes

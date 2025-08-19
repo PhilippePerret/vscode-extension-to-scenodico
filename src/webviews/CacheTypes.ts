@@ -50,10 +50,13 @@ export interface CachedOeuvreData extends CacheableItem {
   titre_affiche: string;
   titre_original?: string;
   titre_francais?: string;
+  titre_affiche_formated?: string;
+  titre_francais_formated?: string;
   titres: string[];                // Tous les titres combinés pour recherche
   titresLookUp: string[];            // Versions minuscules des titres
   annee?: number;
   auteurs?: string;
+  auteurs_formated?: string;
 }
 
 /**

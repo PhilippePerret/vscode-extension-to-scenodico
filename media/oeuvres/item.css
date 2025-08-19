@@ -1,3 +1,12 @@
-div.film {
+div.oeuvre {
   display: block; /* juste pour avoir quelque chose */
+}
+div.oeuvre div.oeuvre-titre_original {
+  font-family: 'Arial Narrow', Arial;
+  font-size: 1.1em;
+}
+div.oeuvre div.oeuvre-titre_affiche,
+div.oeuvre div.oeuvre-titre_francais {
+  text-align: right;
+  font-size: 0.85em;
 }

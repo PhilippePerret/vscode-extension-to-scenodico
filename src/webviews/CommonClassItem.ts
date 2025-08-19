@@ -124,7 +124,11 @@ export abstract class CommonClassItem {
       Object.keys(item).forEach(prop => {
         const elements = clone.querySelectorAll(`[data-prop="${prop}"]`);
         elements.forEach(element => {
-          element.textContent = this.formateProp(prop, item[prop]);
+          if ( item[prop].startsWith('<') ) {
+            element.innerHTML = item[prop];
+          } else {
+            element.textContent = item[prop];
+          }
         });
       });
 

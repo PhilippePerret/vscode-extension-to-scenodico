@@ -286,7 +286,7 @@ export class TestData {
             titre_original: 'Citizen Kane',
             titre_francais: undefined,
             annee: 1941,
-            auteurs: 'Orson WELLES (H réalisateur, scénariste), Herman J. MANKIEWICZ (H, scénariste)',
+            auteurs: 'Orson WELLES (H, réalisateur, scénariste), Herman J. MANKIEWICZ (H, scénariste)',
             notes: 'Personnages: Charles Foster Kane (Orson WELLES), Susan Alexander (Dorothy OMINGORE)',
             resume: 'Following the death of publishing tycoon Charles Foster Kane, reporters scramble to discover the meaning of his final word.'
         },
