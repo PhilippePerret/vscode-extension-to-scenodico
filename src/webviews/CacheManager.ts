@@ -10,7 +10,23 @@ export interface CacheableItem {
 export class CacheManager<TRaw extends CacheableItem, TCached extends CacheableItem> {
   private _cache: Map<string, TCached> = new Map();
   private _isBuilt: boolean = false;
+  private _isPrepared: boolean = false;
 
+  prepareCacheWithData(
+    rawData: TRaw[],
+    prepareItemForCacheMethod: (item: TRaw) => TCached,
+    debugName:string
+  ): void {
+    // Initialisation de la Map
+    this._cache.clear();
+
+    rawData.forEach(item => {
+      this._cache.set(item.id, prepareItemForCacheMethod(item));
+    });
+    
+    this._isPrepared = true ;
+    console.log(`Cache préparé pour ${debugName}: ${this._cache.size} éléments`);
+  }
   /**
    * Construit le cache à partir des données brutes
    * @param rawData - Données brutes de la base de données
@@ -18,19 +34,16 @@ export class CacheManager<TRaw extends CacheableItem, TCached extends CacheableI
    * @param debugName - Nom pour les logs de debug
    */
   buildCache(
-    rawData: TRaw[], 
-    prepareFunction: (item: TRaw) => TCached,
+    finalizeCachedItemMethod: (item: TCached) => TCached,
     debugName: string
   ): void {
-    this._cache.clear();
-    
-    rawData.forEach(item => {
-      const preparedItem = prepareFunction(item);
-      this._cache.set(item.id, preparedItem);
+    // On boucle sur les données qui ont été mises en cache.
+    this._cache.forEach(item => {
+      this._cache.set(item.id, finalizeCachedItemMethod(item));
     });
     
     this._isBuilt = true;
-    console.log(`Cache construit pour ${debugName}: ${this._cache.size} éléments`);
+    console.log(`Cache construit pour ${debugName} éléments`);
   }
 
   /**

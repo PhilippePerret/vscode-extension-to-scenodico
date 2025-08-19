@@ -1,5 +1,5 @@
 import { CommonClassItem, ItemData } from '../CommonClassItem';
-import { CachedExempleData, StringNormalizer } from '../CacheTypes';
+import { AnyCachedData, CachedExempleData, StringNormalizer } from '../CacheTypes';
 import { CacheManager } from '../CacheManager';
 import { Oeuvre } from '../oeuvres/Oeuvre';
 import { Entry } from '../entries/Entry';
@@ -29,15 +29,10 @@ export class Exemple extends CommonClassItem {
   }
 
   /**
-   * Prépare un exemple pour le cache de recherche
-   * SEULE méthode spécifique - le reste hérite de CommonClassItem !
+   * Finalise la donnée pour le cache
    */
-  static prepareItemForCache(exemple: ExempleData): CachedExempleData {
-    const contentNormalized = StringNormalizer.toLower(exemple.content);
-    const contentRationalized = StringNormalizer.rationalize(exemple.content);
-    
-    // Résoudre le titre de l'œuvre si possible
-    // ATTENTION: Les caches des autres classes peuvent ne pas être encore construits
+  static finalizeCachedItem(exemple: AnyCachedData): AnyCachedData {
+    // Résoudre le titre de l'œuvre
     let oeuvreTitle: string | undefined;
     if (exemple.oeuvre_id) {
       try {
@@ -49,29 +44,46 @@ export class Exemple extends CommonClassItem {
         console.warn(`[Exemple] Could not resolve oeuvre ${exemple.oeuvre_id}:`, error);
       }
     }
+    exemple.oeuvre_titre = oeuvreTitle ;
     
-    // Résoudre l'entrée associée si possible
+    // Résoudre l'entrée associée
     let entryEntree: string | undefined;
-    if (exemple.entry_id) {
-      try {
-        if (Entry.isCacheBuilt) {
-          const entry = Entry.get(exemple.entry_id);
-          entryEntree = entry ? entry.entree : undefined;
-        }
-      } catch (error) {
-        console.warn(`[Exemple] Could not resolve entry ${exemple.entry_id}:`, error);
+    try {
+      if (Entry.isCacheBuilt) {
+        const entry = Entry.get(exemple.entry_id);
+        entryEntree = entry ? entry.entree : undefined;
       }
+    } catch (error) {
+      console.warn(`[Exemple] Could not resolve entry ${exemple.entry_id}:`, error);
     }
-    
+    exemple.entry_entree = entryEntree ;
+ 
+    return exemple;
+  }
+  /**
+   * Prépare un exemple pour le cache de recherche
+   * SEULE méthode spécifique - le reste hérite de CommonClassItem !
+   * 
+   * TODO En fait, il faut une méthode en deux temps :
+   *  - le premier ne fait que mettre les données de l'item dans
+   *    la donnée cachée
+   *  - le deuxième temps, une fois toutes les données de tous les
+   *    types chargées, prépare les données spéciales qui ont besoin
+   *    des autres types.
+   */
+  static prepareItemForCache(exemple: ExempleData): CachedExempleData {
+    const contentNormalized = StringNormalizer.toLower(exemple.content);
+    const contentRationalized = StringNormalizer.rationalize(exemple.content);
+   
     return {
       id: exemple.id,
       content: exemple.content,
       content_min: contentNormalized,
       content_min_ra: contentRationalized,
       oeuvre_id: exemple.oeuvre_id,
-      oeuvre_titre: oeuvreTitle,
+      oeuvre_titre: undefined,
       entry_id: exemple.entry_id,
-      entry_entree: entryEntree
+      entry_entree: undefined
     };
   }
 

@@ -234,7 +234,7 @@ function cacheAllData(items: ItemData[], panelId: string): void {
   const itemClass = getClassItem(panelId);
   console.log(`[WEBVIEW] Mise en cache des données ${panelId}`);
   itemClass?.buildCache(items);
-  vscode.postMessage({ command: 'cache-ready' });
+  vscode.postMessage({ command: 'cache-ready' }); // pour l'instant de sert à rien
 }
 
 // Generic render function for all panel types

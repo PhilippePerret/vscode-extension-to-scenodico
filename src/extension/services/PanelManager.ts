@@ -301,7 +301,7 @@ export class PanelManager {
             
             // Send to webview
             const message = {
-                command: 'load',
+                command: 'populate',
                 panelId: ModelClass.panelId,
                 items: this._sortedItemsPerElement[ModelClass.panelId]
             };

@@ -12,16 +12,10 @@
       throw new Error("cacheManager getter must be implemented by subclass");
     }
     static get container() {
-      if (!this._container) {
-        this._container = document.querySelector("main#items");
-      }
-      return this._container;
+      return this._container || (this._container = document.querySelector("main#items"));
     }
     static get template() {
-      if (!this._template) {
-        this._template = document.querySelector("template#item-template");
-      }
-      return this._template;
+      return this._template || (this._template = document.querySelector("template#item-template"));
     }
     static error(errorId) {
       const errors = this.ERRORS;
@@ -43,12 +37,14 @@
     }
     /**
      * Construit le cache à partir des données en base de données
-     * Méthode commune DRY - pas de duplication !
+     * Dans un premier temps, les données sont mises telle quelles
+     * Puis, une fois qu'elles seront toutes chargées (pour tous les
+     * éléments) on pourra préparer chaque item.
      */
     static buildCache(bddData) {
       console.log(`[${this.name}] buildCache called with ${bddData.length} items`);
       try {
-        this.cacheManager.buildCache(
+        this.cacheManager.prepareCacheWithData(
           bddData,
           (item) => this.prepareItemForCache(item),
           this.minName
@@ -117,13 +113,6 @@
       return manager.isBuilt ? manager.getAll() : null;
     }
     /**
-     * Accesso pour être compatible avec les tests existants
-     * @deprecated
-     */
-    static get _searchCache() {
-      return this.searchCache;
-    }
-    /**
      * Post-traitement après affichage des éléments
      * Doit être surclassé par les méthodes propres aux différents panneaux
      */
@@ -153,20 +142,27 @@
   var CacheManager = class {
     _cache = /* @__PURE__ */ new Map();
     _isBuilt = false;
+    _isPrepared = false;
+    prepareCacheWithData(rawData, prepareItemForCacheMethod, debugName) {
+      this._cache.clear();
+      rawData.forEach((item) => {
+        this._cache.set(item.id, prepareItemForCacheMethod(item));
+      });
+      this._isPrepared = true;
+      console.log(`Cache pr\xE9par\xE9 pour ${debugName}: ${this._cache.size} \xE9l\xE9ments`);
+    }
     /**
      * Construit le cache à partir des données brutes
      * @param rawData - Données brutes de la base de données
      * @param prepareFunction - Fonction de préparation des données pour le cache
      * @param debugName - Nom pour les logs de debug
      */
-    buildCache(rawData, prepareFunction, debugName) {
-      this._cache.clear();
-      rawData.forEach((item) => {
-        const preparedItem = prepareFunction(item);
-        this._cache.set(item.id, preparedItem);
+    buildCache(finalizeCachedItemMethod, debugName) {
+      this._cache.forEach((item) => {
+        this._cache.set(item.id, finalizeCachedItemMethod(item));
       });
       this._isBuilt = true;
-      console.log(`Cache construit pour ${debugName}: ${this._cache.size} \xE9l\xE9ments`);
+      console.log(`Cache construit pour ${debugName} \xE9l\xE9ments`);
     }
     /**
      * Récupère un élément par son ID
@@ -416,12 +412,9 @@
       return value || "";
     }
     /**
-     * Prépare un exemple pour le cache de recherche
-     * SEULE méthode spécifique - le reste hérite de CommonClassItem !
+     * Finalise la donnée pour le cache
      */
-    static prepareItemForCache(exemple) {
-      const contentNormalized = StringNormalizer.toLower(exemple.content);
-      const contentRationalized = StringNormalizer.rationalize(exemple.content);
+    static finalizeCachedItem(exemple) {
       let oeuvreTitle;
       if (exemple.oeuvre_id) {
         try {
@@ -433,26 +426,42 @@
           console.warn(`[Exemple] Could not resolve oeuvre ${exemple.oeuvre_id}:`, error);
         }
       }
+      exemple.oeuvre_titre = oeuvreTitle;
       let entryEntree;
-      if (exemple.entry_id) {
-        try {
-          if (Entry.isCacheBuilt) {
-            const entry = Entry.get(exemple.entry_id);
-            entryEntree = entry ? entry.entree : void 0;
-          }
-        } catch (error) {
-          console.warn(`[Exemple] Could not resolve entry ${exemple.entry_id}:`, error);
+      try {
+        if (Entry.isCacheBuilt) {
+          const entry = Entry.get(exemple.entry_id);
+          entryEntree = entry ? entry.entree : void 0;
         }
+      } catch (error) {
+        console.warn(`[Exemple] Could not resolve entry ${exemple.entry_id}:`, error);
       }
+      exemple.entry_entree = entryEntree;
+      return exemple;
+    }
+    /**
+     * Prépare un exemple pour le cache de recherche
+     * SEULE méthode spécifique - le reste hérite de CommonClassItem !
+     * 
+     * TODO En fait, il faut une méthode en deux temps :
+     *  - le premier ne fait que mettre les données de l'item dans
+     *    la donnée cachée
+     *  - le deuxième temps, une fois toutes les données de tous les
+     *    types chargées, prépare les données spéciales qui ont besoin
+     *    des autres types.
+     */
+    static prepareItemForCache(exemple) {
+      const contentNormalized = StringNormalizer.toLower(exemple.content);
+      const contentRationalized = StringNormalizer.rationalize(exemple.content);
       return {
         id: exemple.id,
         content: exemple.content,
         content_min: contentNormalized,
         content_min_ra: contentRationalized,
         oeuvre_id: exemple.oeuvre_id,
-        oeuvre_titre: oeuvreTitle,
+        oeuvre_titre: void 0,
         entry_id: exemple.entry_id,
-        entry_entree: entryEntree
+        entry_entree: void 0
       };
     }
     /**
@@ -547,6 +556,7 @@
         const oeuvre = Oeuvre.get(currentOeuvreId);
         if (!oeuvre) {
           console.log("Oeuvre introuvable, Oeuvre.cacheManager vaut", Oeuvre.cacheManagerForced);
+          throw new Error("L'\u0153uvre devrait \xEAtre d\xE9finie.");
         }
         console.log("oeuvre r\xE9pondant \xE0 l'id %s", currentOeuvreId, oeuvre);
         const titre = oeuvre ? oeuvre.titre_affiche : "\u0153uvre introuvable";
@@ -599,7 +609,11 @@
           targetElement.innerHTML = message2.content;
         }
         break;
-      case "load":
+      case "cacheData":
+        console.log("[WEBVIEW] Mise en cache des donn\xE9es du panneau %s", message2.panelId);
+        cacheAllData(message2.items, message2.panelId);
+        break;
+      case "populate":
         console.log("[CLIENT] Processing load message - panelId:", message2.panelId, "items count:", message2.items?.length);
         renderItems(message2.items, message2.panelId);
         break;
@@ -731,25 +745,20 @@
         return null;
     }
   }
+  function cacheAllData(items, panelId) {
+    const itemClass = getClassItem(panelId);
+    console.log(`[WEBVIEW] Mise en cache des donn\xE9es ${panelId}`);
+    itemClass?.buildCache(items);
+    vscode.postMessage({ command: "cache-ready" });
+  }
   function renderItems(items, panelId) {
     const itemClass = getClassItem(panelId);
-    if (!itemClass) {
-      console.error(`No item class found for panelId: ${panelId}`);
-      return;
-    }
-    if (!itemClass.container || !itemClass.template) {
-      console.error(`Container or template not found for ${panelId}`);
-      return;
-    }
-    if (items.length > 0) {
-      console.log(`[CLIENT] Building cache for ${panelId} with ${items.length} items`);
-      itemClass.buildCache(items);
-    }
-    itemClass.container.innerHTML = "";
+    const container = itemClass.container;
+    container.innerHTML = "";
     if (items.length) {
       renderExistingItems(items, itemClass);
     } else {
-      itemClass.container.innerHTML = `<div class="no-${panelId}">${itemClass.error("no-items")}</div>`;
+      container.innerHTML = `<div class="no-${panelId}">${itemClass.error("no-items")}</div>`;
     }
     vscode.postMessage({ command: "panel-ready" });
   }

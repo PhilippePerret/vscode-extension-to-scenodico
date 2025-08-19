@@ -51,11 +51,14 @@ export abstract class CommonClassItem {
 
   /**
    * Construit le cache à partir des données en base de données
+   * Dans un premier temps, les données sont mises telle quelles
+   * Puis, une fois qu'elles seront toutes chargées (pour tous les
+   * éléments) on pourra préparer chaque item.
    */
   static buildCache(bddData: ItemData[]): void {
     console.log(`[${this.name}] buildCache called with ${bddData.length} items`);
     try {
-      this.cacheManager.buildCache(
+      this.cacheManager.prepareCacheWithData(
         bddData, 
         (item) => this.prepareItemForCache(item),
         (this as any).minName
