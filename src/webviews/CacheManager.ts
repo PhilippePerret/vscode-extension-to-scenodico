@@ -1,4 +1,5 @@
 import { AnyCachedData } from "./CacheTypes";
+import { vscode } from './common'; 
 
 export interface CacheableItem {
   id: string;
@@ -23,15 +24,13 @@ export class CacheManager<TRaw extends CacheableItem, TCached extends CacheableI
     prepareItemForCacheMethod: (item: TRaw) => TCached,
     debugName:string
   ): void {
-    // Initialisation de la Map
     this._cache.clear();
-
     rawData.forEach(item => {
       this._cache.set(item.id, prepareItemForCacheMethod(item));
     });
-    
     this._isPrepared = true ;
-    console.log(`Cache préparé pour ${debugName}: ${this._cache.size} éléments`);
+    vscode.postMessage({command: 'data-cached'});
+    console.log(`[WEBVIEW] Cache préparé pour ${debugName}: ${this._cache.size} éléments`);
   }
   
   finalizeCachedData(

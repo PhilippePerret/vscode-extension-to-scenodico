@@ -17,8 +17,13 @@ function ItemClass(panelId: string): typeof CommonClassItem | undefined {
   }
 }
 // VSCode API
-declare function acquireVsCodeApi(): any;
-const vscode = acquireVsCodeApi();
+interface VSCodeAPI {
+  postMessage: (msg: any) => void;
+  getState: () => any;
+  setState: (state: any) => void;
+}
+declare function acquireVsCodeApi(): VSCodeAPI;
+export const vscode = acquireVsCodeApi();
 
 // Types pour les messages
 interface Message {

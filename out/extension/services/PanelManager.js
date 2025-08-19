@@ -172,26 +172,34 @@ class PanelManager {
         // minimums), on charge les données.
         // Mais dans un premier temps, on fabrique les données cache
         // (qui sont des données optimisées)
-        await Promise.all([
-            this.cacheData(context, dictionnaire.webview, Entry_1.Entry),
-            this.cacheData(context, oeuvres.webview, Oeuvre_1.Oeuvre),
-            this.cacheData(context, exemples.webview, Exemple_1.Exemple),
-        ]);
+        this.cacheData(context, dictionnaire.webview, Entry_1.Entry);
+        this.cacheData(context, oeuvres.webview, Oeuvre_1.Oeuvre);
+        this.cacheData(context, exemples.webview, Exemple_1.Exemple);
+        // On attend que les trois panneaux aient chargé leur données
+        await this.cachedDataLoadedInPanels();
         console.info("[EXTENSION] Fin de mise en cache des données");
-        /*
-                await Promise.all([
-                    this.populatePanel(context, dictionnaire.webview, Entry),
-                    this.populatePanel(context, oeuvres.webview, Oeuvre),
-                    this.populatePanel(context, exemples.webview, Exemple)
-                ]);
-                console.info("[EXTENSION] Fin de populate des panneaux.");
-        //*/
-        // Pour essayer de peupler petit à petit 
+        // Peuplement des panneaux
         await Promise.all([
             this.populatePanel(context, dictionnaire.webview, Entry_1.Entry),
-            this.populatePanel(context, oeuvres.webview, Oeuvre_1.Oeuvre)
+            this.populatePanel(context, oeuvres.webview, Oeuvre_1.Oeuvre),
+            this.populatePanel(context, exemples.webview, Exemple_1.Exemple)
         ]);
         console.info("[EXTENSION] Fin de la population des trois panneaux.");
+    }
+    static async cachedDataLoadedInPanels() {
+        return new Promise((ok) => {
+            let readyCount = 0;
+            this.activePanels.forEach((panel) => {
+                const webview = panel.webview;
+                webview.onDidReceiveMessage((message) => {
+                    if (message.command === 'data-cached') {
+                        if (++readyCount >= 3) {
+                            ok();
+                        }
+                    }
+                });
+            });
+        });
     }
     /**
      * Generic method to generate HTML for any panel using Model classes
@@ -290,8 +298,8 @@ class PanelManager {
                 command: 'populate',
                 panelId: ModelClass.panelId
             };
-            console.log(`[EXTENSION] Demande de populate du panneau ${ModelClass.panelId}`);
             webview.postMessage(message);
+            console.log(`[EXTENSION] Demande de populate du panneau ${ModelClass.panelId} envoyée.`);
         }
         catch (error) {
             console.error(`Error loading data for ${ModelClass.name}:`, error);

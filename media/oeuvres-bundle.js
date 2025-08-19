@@ -246,7 +246,8 @@
         this._cache.set(item.id, prepareItemForCacheMethod(item));
       });
       this._isPrepared = true;
-      console.log(`Cache pr\xE9par\xE9 pour ${debugName}: ${this._cache.size} \xE9l\xE9ments`);
+      vscode.postMessage({ command: "data-cached" });
+      console.log(`[WEBVIEW] Cache pr\xE9par\xE9 pour ${debugName}: ${this._cache.size} \xE9l\xE9ments`);
     }
     finalizeCachedData(finalizeItemMethod, debugName) {
       this.forEach((item) => finalizeItemMethod(item));

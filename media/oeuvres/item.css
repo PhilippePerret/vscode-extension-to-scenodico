@@ -21,3 +21,7 @@ div.oeuvre div.oeuvre-resume {
   margin-right: 1em;
   text-align: justify;
 }
+
+div.oeuvre div.auteurs {
+  font-size: 0.8em;
+}
