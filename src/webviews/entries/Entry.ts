@@ -38,8 +38,8 @@ export class Entry extends CommonClassItem {
    * SEULE méthode spécifique - le reste hérite de CommonClassItem !
    */
   static prepareItemForCache(entry: EntryData): CachedEntryData {
-    const entreeNormalized = StringNormalizer.toLower(entry.entree);
-    const entreeRationalized = StringNormalizer.rationalize(entry.entree);
+    const entreeNormalized    = StringNormalizer.toLower(entry.entree);
+    const entreeRationalized  = StringNormalizer.rationalize(entry.entree);
    
     return {
       id: entry.id,
