@@ -65,8 +65,7 @@
      * chargées pour tous les éléments
      */
     static finalizeCachedData() {
-      const items = this.getAll();
-      console.error(`[WEBVIEW] Il faut que je finalise les donn\xE9es ${this.minName}`);
+      this.forEach((item) => this.prepareItemForCache(item));
       return this;
     }
     /**
@@ -109,7 +108,7 @@
     static observePanel() {
       const searchInput = document.querySelector("#search-input");
       const DomItemsState = {};
-      this.getAll().forEach((item) => DomItemsState[item.id] = "block");
+      this.forEach((item) => DomItemsState[item.id] = "block");
       const filterEntries = () => {
         const searchTerm = searchInput.value.trim();
         const allItems = this.getAll();
@@ -326,6 +325,76 @@
     }
   };
 
+  // src/webviews/entries/Entry.ts
+  var Entry = class extends CommonClassItem {
+    static minName = "entry";
+    // Cache manager spécifique aux entrées
+    static _cacheManagerInstance = new CacheManager();
+    static get cacheManager() {
+      return this._cacheManagerInstance;
+    }
+    static ERRORS = {
+      "no-items": "Aucune entr\xE9e dans la base, bizarrement\u2026"
+    };
+    static GENRES = {
+      "nm": "n.m.",
+      "nf": "n.f.",
+      "np": "n.pl.",
+      "vb": "verbe",
+      "adj": "adj.",
+      "adv": "adv."
+    };
+    static formateProp(prop, value) {
+      switch (prop) {
+        case "genre":
+          return this.GENRES[value] || `# genre ${value} inconnu #`;
+        default:
+          return value || "";
+      }
+    }
+    /**
+     * Prépare une entrée pour le cache de recherche
+     * SEULE méthode spécifique - le reste hérite de CommonClassItem !
+     */
+    static prepareItemForCache(entry) {
+      const entreeNormalized = StringNormalizer.toLower(entry.entree);
+      const entreeRationalized = StringNormalizer.rationalize(entry.entree);
+      let categorie;
+      if (entry.categorie_id && this.cacheManager.has(entry.categorie_id)) {
+        const categorieEntry = this.cacheManager.get(entry.categorie_id);
+        categorie = categorieEntry ? categorieEntry.entree : void 0;
+      }
+      return {
+        id: entry.id,
+        entree: entry.entree,
+        entree_min: entreeNormalized,
+        entree_min_ra: entreeRationalized,
+        categorie_id: entry.categorie_id,
+        categorie,
+        genre: entry.genre
+      };
+    }
+    /**
+     * Recherche d'entrées par préfixe (optimisée)
+     * Méthode spécifique Entry
+     */
+    static searchMatchingItems(prefix) {
+      const prefixLower = StringNormalizer.toLower(prefix);
+      const prefixRa = StringNormalizer.rationalize(prefix);
+      return this.filter((entry) => {
+        return entry.entree_min.startsWith(prefixLower) || entry.entree_min_ra.startsWith(prefixRa);
+      });
+    }
+    // Méthodes typées pour plus de confort (optionnel)
+    static get(id) {
+      return super.get(id);
+    }
+    static getAll() {
+      return super.getAll();
+    }
+  };
+  window.Entry = Entry;
+
   // src/webviews/oeuvres/Oeuvre.ts
   var Oeuvre = class extends CommonClassItem {
     static minName = "oeuvre";
@@ -404,75 +473,203 @@
       });
     }
   };
+  window.Oeuvre = Oeuvre;
 
-  // src/webviews/entries/Entry.ts
-  var Entry = class extends CommonClassItem {
-    static minName = "entry";
-    // Cache manager spécifique aux entrées
-    static _cacheManagerInstance = new CacheManager();
-    static get cacheManager() {
-      return this._cacheManagerInstance;
+  // src/webviews/common.ts
+  function ItemClass(panelId) {
+    switch (panelId) {
+      case "entries":
+        return Entry;
+      case "oeuvres":
+        return Oeuvre;
+      case "exemples":
+        return Exemple;
     }
-    static ERRORS = {
-      "no-items": "Aucune entr\xE9e dans la base, bizarrement\u2026"
-    };
-    static GENRES = {
-      "nm": "n.m.",
-      "nf": "n.f.",
-      "np": "n.pl.",
-      "vb": "verbe",
-      "adj": "adj.",
-      "adv": "adv."
-    };
-    static formateProp(prop, value) {
-      switch (prop) {
-        case "genre":
-          return this.GENRES[value] || `# genre ${value} inconnu #`;
-        default:
-          return value || "";
-      }
+  }
+  var vscode = acquireVsCodeApi();
+  window.addEventListener("message", (event) => {
+    const message = event.data;
+    switch (message.command) {
+      case "queryDOM":
+        queryDOMObject(message);
+        break;
+      case "queryDOMAll":
+        handleQueryDOMAll(message);
+        break;
+      case "queryDOMVisible":
+        handleQueryDOMVisible(message);
+        break;
+      case "typeInElement":
+        handleTypeInElement(message);
+        break;
+      case "clearAndTypeInElement":
+        handleClearAndTypeInElement(message);
+        break;
+      case "clearElement":
+        handleClearElement(message);
+        break;
+      case "getElementFromParent":
+        handleGetElementFromParent(message);
+        break;
+      case "executeScript":
+        handleExecuteScript(message);
+        break;
+      case "updateContent":
+        const targetElement = document.querySelector(message.target);
+        if (targetElement) {
+          targetElement.innerHTML = message.content;
+        }
+        break;
+      case "cacheData":
+        cacheAllData(message.items, message.panelId);
+        break;
+      case "populate":
+        console.log(`[WEBVIEW] Demande population du panneau ${message.panelId} re\xE7ue.`);
+        populatePanel(message.panelId);
+        break;
     }
-    /**
-     * Prépare une entrée pour le cache de recherche
-     * SEULE méthode spécifique - le reste hérite de CommonClassItem !
-     */
-    static prepareItemForCache(entry) {
-      const entreeNormalized = StringNormalizer.toLower(entry.entree);
-      const entreeRationalized = StringNormalizer.rationalize(entry.entree);
-      let categorie;
-      if (entry.categorie_id && this.cacheManager.has(entry.categorie_id)) {
-        const categorieEntry = this.cacheManager.get(entry.categorie_id);
-        categorie = categorieEntry ? categorieEntry.entree : void 0;
-      }
-      return {
-        id: entry.id,
-        entree: entry.entree,
-        entree_min: entreeNormalized,
-        entree_min_ra: entreeRationalized,
-        categorie_id: entry.categorie_id,
-        categorie,
-        genre: entry.genre
+  });
+  function cacheAllData(items, panelId) {
+    ItemClass(panelId).buildCache(items);
+    vscode.postMessage({ command: "cache-ready" });
+  }
+  function populatePanel(panelId) {
+    ItemClass(panelId).finalizeCachedData().populatePanel().observePanel();
+    vscode.postMessage({ command: "panel-ready" });
+  }
+  function queryDOMObject(message) {
+    const element = document.querySelector(message.selector);
+    let elementData = null;
+    if (element) {
+      elementData = {
+        tagName: element.tagName.toLowerCase(),
+        textContent: element.textContent || "",
+        classList: Array.from(element.classList),
+        id: element.id,
+        exists: true
       };
     }
-    /**
-     * Recherche d'entrées par préfixe (optimisée)
-     * Méthode spécifique Entry
-     */
-    static searchMatchingItems(prefix) {
-      const prefixLower = StringNormalizer.toLower(prefix);
-      const prefixRa = StringNormalizer.rationalize(prefix);
-      return this.filter((entry) => {
-        return entry.entree_min.startsWith(prefixLower) || entry.entree_min_ra.startsWith(prefixRa);
+    vscode.postMessage({
+      command: "domQueryResult",
+      selector: message.selector,
+      element: elementData
+    });
+  }
+  function createElementData(element) {
+    return {
+      tagName: element.tagName.toLowerCase(),
+      textContent: element.textContent || "",
+      classList: Array.from(element.classList),
+      id: element.id,
+      exists: true
+    };
+  }
+  function handleQueryDOMAll(message) {
+    const elements = document.querySelectorAll(message.params.selector);
+    const elementsData = Array.from(elements).map(createElementData);
+    vscode.postMessage({
+      command: "queryDOMAllResult",
+      params: message.params,
+      result: elementsData
+    });
+  }
+  function handleQueryDOMVisible(message) {
+    const elements = document.querySelectorAll(message.params.selector);
+    const visibleElements = Array.from(elements).filter((element) => {
+      const style = window.getComputedStyle(element);
+      return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
+    });
+    const elementsData = visibleElements.map(createElementData);
+    vscode.postMessage({
+      command: "queryDOMVisibleResult",
+      params: message.params,
+      result: elementsData
+    });
+  }
+  function handleTypeInElement(message) {
+    const element = document.querySelector(message.params.selector);
+    if (element && (element.tagName === "INPUT" || element.tagName === "TEXTAREA")) {
+      element.value += message.params.text;
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    vscode.postMessage({
+      command: "typeInElementResult",
+      params: message.params,
+      result: null
+    });
+  }
+  function handleClearAndTypeInElement(message) {
+    const element = document.querySelector(message.params.selector);
+    if (element && (element.tagName === "INPUT" || element.tagName === "TEXTAREA")) {
+      element.value = message.params.text;
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    vscode.postMessage({
+      command: "clearAndTypeInElementResult",
+      params: message.params,
+      result: null
+    });
+  }
+  function handleClearElement(message) {
+    const element = document.querySelector(message.params.selector);
+    if (element && (element.tagName === "INPUT" || element.tagName === "TEXTAREA")) {
+      element.value = "";
+      element.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    vscode.postMessage({
+      command: "clearElementResult",
+      params: message.params,
+      result: null
+    });
+  }
+  function handleGetElementFromParent(message) {
+    const parentElement = document.getElementById(message.params.parentId);
+    let elementData = null;
+    if (parentElement) {
+      const element = parentElement.querySelector(message.params.selector);
+      if (element) {
+        elementData = createElementData(element);
+      }
+    }
+    vscode.postMessage({
+      command: "getElementFromParentResult",
+      params: message.params,
+      result: elementData
+    });
+  }
+  function handleExecuteScript(message) {
+    let result = null;
+    try {
+      result = (0, eval)(message.params.script);
+    } catch (error) {
+      console.error("Script execution error:", error);
+      result = error.message;
+    }
+    vscode.postMessage({
+      command: "executeScriptResult",
+      params: message.params,
+      result
+    });
+  }
+  document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("keydown", (event) => {
+    });
+    const consoleInput = document.querySelector("#panel-console");
+    if (consoleInput) {
+      consoleInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          const command = consoleInput.value.trim();
+          if (command) {
+            vscode.postMessage({
+              command: "console-command",
+              value: command
+            });
+            consoleInput.value = "";
+          }
+        }
       });
     }
-    // Méthodes typées pour plus de confort (optionnel)
-    static get(id) {
-      return super.get(id);
-    }
-    static getAll() {
-      return super.getAll();
-    }
-  };
+  });
 
   // src/webviews/exemples/Exemple.ts
   var Exemple = class _Exemple extends CommonClassItem {
@@ -650,5 +847,6 @@
       return true;
     }
   };
+  window.Exemple = Exemple;
 })();
 //# sourceMappingURL=exemples-bundle.js.map

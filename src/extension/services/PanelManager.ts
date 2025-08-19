@@ -175,16 +175,18 @@ export class PanelManager {
 			this.cacheData(context, exemples.webview, Exemple),
 		]);
 		console.info("[EXTENSION] Fin de mise en cache des données");
-		throw new Error("POUR ARRÊTER AVANT LA POPULATION (TOUTES LES DONNÉES DOIVENT AVOIR ÉTÉ MISES EN CACHE.");
-
+/*
 		await Promise.all([
 			this.populatePanel(context, dictionnaire.webview, Entry),
 			this.populatePanel(context, oeuvres.webview, Oeuvre),
 			this.populatePanel(context, exemples.webview, Exemple)
 		]);
 		console.info("[EXTENSION] Fin de populate des panneaux.");
+//*/
+ 
+   // Pour essayer de peupler petit à petit 
+			this.populatePanel(context, dictionnaire.webview, Entry);
 	}
-
 	/**
 	 * Generic method to generate HTML for any panel using Model classes
 	 */

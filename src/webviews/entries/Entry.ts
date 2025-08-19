@@ -1,3 +1,4 @@
+import '../common';
 import { CommonClassItem, ItemData } from '../CommonClassItem';
 import { CachedEntryData, StringNormalizer } from '../CacheTypes';
 import { CacheManager } from '../CacheManager';
@@ -90,3 +91,6 @@ export class Entry extends CommonClassItem {
     return super.getAll() as CachedEntryData[];
   }
 }
+
+// Pour exposer globalement
+(window as any).Entry = Entry ;

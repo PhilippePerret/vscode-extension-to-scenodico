@@ -80,8 +80,7 @@ export abstract class CommonClassItem {
    * chargées pour tous les éléments
    */
   public static finalizeCachedData(): typeof CommonClassItem {
-    const items = this.getAll();
-    console.error(`[WEBVIEW] Il faut que je finalise les données ${this.minName}`);
+    this.forEach(item => this.prepareItemForCache(item));
     return this; // pour le chainage
   }
   /**
@@ -140,7 +139,7 @@ export abstract class CommonClassItem {
     // displayed et selected dans la donnée en cache.
     const DomItemsState: Record<string, string> = {};
     // Par défaut, les définitions sont toujours affichées
-    this.getAll().forEach(item => DomItemsState[item.id] = 'block');
+    this.forEach(item => DomItemsState[item.id] = 'block');
 
     // Fonction de filtrage
     const filterEntries = () => {

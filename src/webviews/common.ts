@@ -74,6 +74,7 @@ window.addEventListener('message', (event: MessageEvent<Message>) => {
       cacheAllData(message.items, message.panelId);
       break;
     case 'populate':
+      console.log(`[WEBVIEW] Demande population du panneau ${message.panelId} reçue.`);
       populatePanel(message.panelId);
       break;
   }
@@ -229,7 +230,8 @@ function handleGetElementFromParent(message: Message): void {
 function handleExecuteScript(message: Message): void {
   let result: any = null;
   try {
-    result = eval(message.params.script);
+    // result = eval(message.params.script);
+    result = (0, eval)(message.params.script);
   } catch (error) {
     console.error('Script execution error:', error);
     result = (error as Error).message;
@@ -266,8 +268,6 @@ export function toggleElement(selector: string): void {
 
 // Gestionnaires d'événements communs
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Panneau initialisé');
-  
   // Gestion des touches communes (à implémenter plus tard)
   document.addEventListener('keydown', (event) => {
     // TODO: Gestion du système Vim-like

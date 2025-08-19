@@ -1,3 +1,4 @@
+import '../common'; 
 import { CommonClassItem, ItemData } from '../CommonClassItem';
 import { AnyCachedData, CachedExempleData, StringNormalizer } from '../CacheTypes';
 import { CacheManager } from '../CacheManager';
@@ -214,3 +215,5 @@ export class Exemple extends CommonClassItem {
     return true;
   }
 }
+
+(window as any).Exemple = Exemple ;

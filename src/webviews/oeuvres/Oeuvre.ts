@@ -1,3 +1,4 @@
+import '../common';
 import { CacheManager } from '../CacheManager';
 import { CachedOeuvreData, StringNormalizer } from '../CacheTypes';
 import { CommonClassItem, ItemData } from '../CommonClassItem';
@@ -101,3 +102,6 @@ export class Oeuvre extends CommonClassItem {
     }) as CachedOeuvreData[];
   }
 }
+
+
+(window as any).Oeuvre = Oeuvre ;
