@@ -179,12 +179,10 @@ class PanelManager {
         await this.cachedDataLoadedInPanels();
         console.info("[EXTENSION] Fin de mise en cache des données");
         // Peuplement des panneaux
-        await Promise.all([
-            this.populatePanel(context, dictionnaire.webview, Entry_1.Entry),
-            this.populatePanel(context, oeuvres.webview, Oeuvre_1.Oeuvre),
-            this.populatePanel(context, exemples.webview, Exemple_1.Exemple)
-        ]);
-        console.info("[EXTENSION] Fin de la population des trois panneaux.");
+        this.populatePanel(context, dictionnaire.webview, Entry_1.Entry);
+        this.populatePanel(context, oeuvres.webview, Oeuvre_1.Oeuvre);
+        this.populatePanel(context, exemples.webview, Exemple_1.Exemple);
+        // TODO Placer une attente pour savoir si les panneaux se sont bien peuplés.
     }
     static async cachedDataLoadedInPanels() {
         return new Promise((ok) => {
@@ -298,8 +296,8 @@ class PanelManager {
                 command: 'populate',
                 panelId: ModelClass.panelId
             };
+            console.log(`[EXTENSION] Envoi de la demande de populate du panneau ${ModelClass.panelId}.`);
             webview.postMessage(message);
-            console.log(`[EXTENSION] Demande de populate du panneau ${ModelClass.panelId} envoyée.`);
         }
         catch (error) {
             console.error(`Error loading data for ${ModelClass.name}:`, error);

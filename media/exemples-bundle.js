@@ -11,10 +11,6 @@
     static get cacheManager() {
       throw new Error("cacheManager getter must be implemented by subclass");
     }
-    // Pour tester
-    static get cacheIsInitied() {
-      return this.cacheManager.prepared === true;
-    }
     static get container() {
       return this._container || (this._container = document.querySelector("main#items"));
     }
@@ -154,10 +150,7 @@
      * @param id - ID de l'élément à récupérer
      */
     static get(id) {
-      if (this.cacheManager.isBuilt === true) {
-        console.info("cache manager des oeuvre", this.cacheManager);
-        throw new Error("Pour s'arr\xEAter l\xE0");
-      }
+      console.log("-> Oeuvre.get(%s)", id, this.cacheManager);
       return this.cacheManager.get(id);
     }
     /**
@@ -237,9 +230,6 @@
     _cache = /* @__PURE__ */ new Map();
     _isBuilt = false;
     _isPrepared = false;
-    get prepared() {
-      return this._isPrepared === true;
-    }
     prepareCacheWithData(rawData, prepareItemForCacheMethod, debugName) {
       this._cache.clear();
       rawData.forEach((item) => {
@@ -252,29 +242,13 @@
     finalizeCachedData(finalizeItemMethod, debugName) {
       this.forEach((item) => finalizeItemMethod(item));
     }
-    // /**
-    //  * Construit le cache à partir des données brutes
-    //  * @param rawData - Données brutes de la base de données
-    //  * @param prepareFunction - Fonction de préparation des données pour le cache
-    //  * @param debugName - Nom pour les logs de debug
-    //  */
-    // buildCache(
-    //   finalizeCachedItemMethod: (item: TCached) => TCached,
-    //   debugName: string
-    // ): void {
-    //   // On boucle sur les données qui ont été mises en cache.
-    //   this._cache.forEach(item => {
-    //     this._cache.set(item.id, finalizeCachedItemMethod(item));
-    //   });
-    //   this._isBuilt = true;
-    //   console.log(`Cache construit pour ${debugName} éléments`);
-    // }
     /**
      * Récupère un élément par son ID
      * @param id - ID de l'élément à récupérer
      * @returns L'élément trouvé ou null
      */
     get(id) {
+      console.log("[%s] -> get(%s)", this.constructor.name, id, this._cache);
       return this._cache.get(id) || null;
     }
     /**
@@ -733,7 +707,7 @@
   });
 
   // src/webviews/exemples/Exemple.ts
-  var Exemple = class _Exemple extends CommonClassItem {
+  var Exemple = class extends CommonClassItem {
     static minName = "exemple";
     // Cache manager spécifique aux exemples
     static _cacheManagerInstance = new CacheManager();
@@ -881,19 +855,19 @@
         return false;
       }
       let currentOeuvreId = "";
-      _Exemple.getAll().forEach((exemple) => {
+      this.cacheManager.getAll().forEach((exemple) => {
         if (exemple.oeuvre_id === currentOeuvreId) {
           return;
         }
         const domObj = document.querySelector(`main#items > div.item[data-id="${exemple.id}"]`);
         currentOeuvreId = exemple.oeuvre_id;
         const titleObj = document.createElement("h2");
-        const oeuvre = Oeuvre.get(currentOeuvreId);
+        const oeuvre = this.cacheManager.get(exemple.oeuvre_id);
+        console.log("oeuvre r\xE9pondant \xE0 l'id %s", currentOeuvreId, oeuvre);
         if (!oeuvre) {
-          console.log("Oeuvre introuvable, Oeuvre.cacheManager vaut", Oeuvre.cacheManagerForced);
+          console.log("Oeuvre introuvable, this.cacheManager vaut", this.cacheManager);
           throw new Error("L'\u0153uvre devrait \xEAtre d\xE9finie.");
         }
-        console.log("oeuvre r\xE9pondant \xE0 l'id %s", currentOeuvreId, oeuvre);
         const titre = oeuvre ? oeuvre.titre_affiche : "\u0153uvre introuvable";
         console.log("Titre", titre);
         titleObj.innerHTML = titre;

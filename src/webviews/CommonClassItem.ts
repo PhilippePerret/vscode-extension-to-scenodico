@@ -18,10 +18,6 @@ export abstract class CommonClassItem {
   protected static get cacheManager(): CacheManager<any, any> {
     throw new Error('cacheManager getter must be implemented by subclass');
   }
-  // Pour tester
-  static get cacheIsInitied(): boolean {
-    return this.cacheManager.prepared === true ;
-  }
  
   static get container(): HTMLElement | null {
     return this._container || (this._container = document.querySelector('main#items'));
@@ -197,10 +193,7 @@ export abstract class CommonClassItem {
    * @param id - ID de l'élément à récupérer
    */
   static get(id: string): AnyCachedData | null {
-    if (this.cacheManager.isBuilt === true) {
-      console.info("cache manager des oeuvre", this.cacheManager);
-      throw new Error("Pour s'arrêter là");
-    }
+    console.log("-> Oeuvre.get(%s)", id, this.cacheManager);
     return this.cacheManager.get(id);
   }
 

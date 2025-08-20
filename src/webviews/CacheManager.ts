@@ -15,10 +15,6 @@ export class CacheManager<TRaw extends CacheableItem, TCached extends CacheableI
   private _isBuilt: boolean = false;
   protected _isPrepared: boolean = false;
   
-  public get prepared() {
-    return this._isPrepared === true ; 
-  }
-
  prepareCacheWithData(
     rawData: TRaw[],
     prepareItemForCacheMethod: (item: TRaw) => TCached,
@@ -39,24 +35,6 @@ export class CacheManager<TRaw extends CacheableItem, TCached extends CacheableI
   ): void {
     this.forEach(item => finalizeItemMethod(item));
   }
-  // /**
-  //  * Construit le cache à partir des données brutes
-  //  * @param rawData - Données brutes de la base de données
-  //  * @param prepareFunction - Fonction de préparation des données pour le cache
-  //  * @param debugName - Nom pour les logs de debug
-  //  */
-  // buildCache(
-  //   finalizeCachedItemMethod: (item: TCached) => TCached,
-  //   debugName: string
-  // ): void {
-  //   // On boucle sur les données qui ont été mises en cache.
-  //   this._cache.forEach(item => {
-  //     this._cache.set(item.id, finalizeCachedItemMethod(item));
-  //   });
-    
-  //   this._isBuilt = true;
-  //   console.log(`Cache construit pour ${debugName} éléments`);
-  // }
 
   /**
    * Récupère un élément par son ID
@@ -64,6 +42,7 @@ export class CacheManager<TRaw extends CacheableItem, TCached extends CacheableI
    * @returns L'élément trouvé ou null
    */
   get(id: string): TCached | null {
+    console.log("[%s] -> get(%s)", this.constructor.name, id, this._cache);
     return this._cache.get(id) || null;
   }
 

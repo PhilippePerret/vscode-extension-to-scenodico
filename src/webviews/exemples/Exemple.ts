@@ -188,18 +188,18 @@ export class Exemple extends CommonClassItem {
     }
     // Film courant
     let currentOeuvreId = '' ;
-    Exemple.getAll().forEach(exemple => {
+    this.cacheManager.getAll().forEach(exemple => {
       if ( exemple.oeuvre_id === currentOeuvreId ) { return ; }
       // Le film change, il faut mettre un titre avant
       const domObj = document.querySelector(`main#items > div.item[data-id="${exemple.id}"]`) as HTMLDivElement ;
       currentOeuvreId = exemple.oeuvre_id as string ;
       const titleObj = document.createElement('h2');
-      const oeuvre = Oeuvre.get(currentOeuvreId) ;
+      const oeuvre = this.cacheManager.get(exemple.oeuvre_id as string);
+      console.log("oeuvre répondant à l'id %s", currentOeuvreId, oeuvre);
       if ( !oeuvre ) {
-        console.log("Oeuvre introuvable, Oeuvre.cacheManager vaut", Oeuvre.cacheManagerForced);
+        console.log("Oeuvre introuvable, this.cacheManager vaut", this.cacheManager);
         throw new Error("L'œuvre devrait être définie.");
       }
-      console.log("oeuvre répondant à l'id %s", currentOeuvreId, oeuvre);
       const titre = oeuvre ? oeuvre.titre_affiche : "œuvre introuvable" ;
       console.log("Titre", titre);
       titleObj.innerHTML = titre ;
