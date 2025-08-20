@@ -1,5 +1,6 @@
 # Todo list
 
+* [tout repenser](#version-2)
 * Faire un script (langage ?) pour transformer les données réelles actuelles en données dans la base de données.
   - pour les entrées, passer par un format intermédiaire en YAML
   - pour les films (oeuvres) et les exemples, transformer les données YAML réelle (migrer). Par exemple, utiliser le `id` du film/oeuvre que pour le moment la donnée ne consigne pas (l'id est seulement défini dans le fichier des exemples) 
@@ -33,3 +34,21 @@
 ## Plus tard
 
 * Imaginer un script qui produise une simulation du livre dans un nouveau panneau (ou dans un navigateur) avec toutes les données formatées, les index, etc. (c'est quand même du boulot).
+
+
+
+---
+
+
+
+<a name="version-2"></name>
+
+## Tout repenser (version 2)
+
+Comme je viens d’apprendre que les panneaux ne pouvaient pas communiquer, je dois repenser intégralement la gestion des données pour que chaque panneau puisse y avoir accès.
+
+### Idées directrices
+
+* Toutes les données sont conservées (mises en cache et préparées) côté extension. Les panneaux font appel à l’extension lorsqu’ils ont besoin d’informations
+* Pour la construction/gestion des panneaux, l’extension envoie toujours au panneau son propre cache de données (pour, par exemple, pouvoir gérer le filtrage des données sans appel à l’extension.)
+* 
