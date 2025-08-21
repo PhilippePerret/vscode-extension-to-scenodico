@@ -1,39 +1,32 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Oeuvre = void 0;
-const BaseModel_1 = require("./BaseModel");
-const OeuvreDb_1 = require("../db/OeuvreDb");
-class Oeuvre extends BaseModel_1.BaseModel {
-    id;
-    titre_affiche;
+const UOeuvre_1 = require("../../bothside/UOeuvre");
+class Oeuvre extends UOeuvre_1.UOeuvre {
+    static panelId = 'oeuvres';
+    id = '';
+    titre_affiche = '';
     titre_original;
     titre_francais;
     annee;
     auteurs;
     notes;
     resume;
+    static sortFonction(a, b) {
+        const titleA = a.titre_original || a.titre_affiche;
+        const titleB = b.titre_original || b.titre_affiche;
+        return titleA.localeCompare(titleB, 'fr', {
+            sensitivity: 'base',
+            numeric: true,
+            caseFirst: 'lower'
+        });
+    }
     constructor(data) {
-        super();
-        this.id = data.id;
-        this.titre_affiche = data.titre_affiche;
-        this.titre_original = data.titre_original;
-        this.titre_francais = data.titre_francais;
-        this.annee = data.annee;
-        this.auteurs = data.auteurs;
-        this.notes = data.notes;
-        this.resume = data.resume;
+        super(data);
     }
-    /**
-     * Panel ID for oeuvres
-     */
-    static get panelId() {
-        return 'oeuvres';
-    }
-    /**
-     * DB class for oeuvres
-     */
-    static get DbClass() {
-        return OeuvreDb_1.OeuvreDb;
+    static prepareItemForCache(item) {
+        // TODO Reprend la méthode qui était en webview
+        return item;
     }
     /**
      * Get the title to use for sorting (French if exists, otherwise original)

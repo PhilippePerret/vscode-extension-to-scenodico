@@ -4,8 +4,9 @@
  */
 import { UniversalDicoElement } from './UniversalDicoElement';
 
-export class Entry extends UniversalDicoElement {
-
+export class UEntry extends UniversalDicoElement {
+  [key: string]: any;
+  
    static readonly GENRES = {
     'nm': 'n.m.',
     'nf': 'n.f.',

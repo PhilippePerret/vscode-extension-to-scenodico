@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const assert = __importStar(require("assert"));
 const vscode = __importStar(require("vscode"));
-const PanelManager_1 = require("../extension/services/PanelManager");
+const PanelManager_1 = require("../extension/services/panels/PanelManager");
 const test_utils_1 = require("./test_utils");
 suite('Recherche/Filtrage des Entrées', () => {
     suiteSetup(async () => {

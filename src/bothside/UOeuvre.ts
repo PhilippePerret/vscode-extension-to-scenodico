@@ -1,6 +1,8 @@
 import { UniversalDicoElement } from './UniversalDicoElement';
 
-export class Oeuvre extends UniversalDicoElement {
+export class UOeuvre extends UniversalDicoElement {
+  [key: string]: any;
+
   public titre_affiche: string = '--- titre affiché non défini ---' ;
   constructor( data: {[k:string]:any} ){
     super(data);

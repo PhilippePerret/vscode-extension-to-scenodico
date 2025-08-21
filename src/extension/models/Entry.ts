@@ -1,4 +1,4 @@
-import { BaseModel } from './BaseModel';
+import { UEntry } from '../../bothside/UEntry';
 import { EntryDb } from '../db/EntryDb';
 import { CacheManager, CacheableItem } from '../services/cache/CacheManager';
 
@@ -12,31 +12,31 @@ export interface IEntry {
 }
 
 // Classe de la donnée mise en cache
-export class Entry extends BaseModel {
+export class Entry extends UEntry {
+	public static panelId: string = 'entries';
 	private static _cacheManagerInstance: CacheManager<IEntry, Entry> = new CacheManager();
-	public id: string;
-	public entree: string;
-	private genre: string;
-	private genre_formated: string;
+	public id = '';
+	public entree = '';
+	private genre = 'nm';
+	private genre_formated?: string;
 	private categorie_id?: string;
 	public categorie?: string; // valeur humanisée
-	public definition: string;
+	public definition = '';
 
 	public static MESSAGES = {
 		'loading-message': "Chargement des entrées du dictionnaire…",
 	};
-
-	// Cache manager spécifique aux entrées
-	protected static get cacheManager(): CacheManager<IEntry, Entry> { return this._cacheManagerInstance; }
-
+	public static sortFonction(a: Entry, b: Entry) {
+    return a.entree.localeCompare(b.entree, 'fr', {
+      sensitivity: 'base',
+      numeric: true,
+      caseFirst: 'lower'
+    });
+ 
+	}
 
 	constructor(data: IEntry) {
-		super();
-		this.id = data.id;
-		this.entree = data.entree;
-		this.genre = data.genre;
-		this.categorie_id = data.categorie_id;
-		this.definition = data.definition;
+		super(data);
 	}
 
 	/**
@@ -45,16 +45,9 @@ export class Entry extends BaseModel {
 	 * @param item  {IEntry} Donnée telle qu'elle est relevée dans la
 	 *              base de données.
 	 */
-	static prepareItemForCache(item: IEntry): CacheableItem {
+	static prepareItemForCache(item: IEntry): Entry {
 		const cachedItem = new Entry(item);
-		return cachedItem as CacheableItem;
-	}
-
-	/**
-	 * Panel ID for entries
-	 */
-	static get panelId(): string {
-		return 'entries';
+		return cachedItem;
 	}
 
 	/**

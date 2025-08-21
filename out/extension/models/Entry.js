@@ -1,30 +1,42 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Entry = void 0;
-const BaseModel_1 = require("./BaseModel");
+const UEntry_1 = require("../../bothside/UEntry");
 const EntryDb_1 = require("../db/EntryDb");
-class Entry extends BaseModel_1.BaseModel {
-    id;
-    entree;
-    genre;
+const CacheManager_1 = require("../services/cache/CacheManager");
+// Classe de la donnée mise en cache
+class Entry extends UEntry_1.UEntry {
+    static panelId = 'entries';
+    static _cacheManagerInstance = new CacheManager_1.CacheManager();
+    id = '';
+    entree = '';
+    genre = 'nm';
+    genre_formated;
     categorie_id;
-    definition;
+    categorie; // valeur humanisée
+    definition = '';
     static MESSAGES = {
         'loading-message': "Chargement des entrées du dictionnaire…",
     };
+    static sortFonction(a, b) {
+        return a.entree.localeCompare(b.entree, 'fr', {
+            sensitivity: 'base',
+            numeric: true,
+            caseFirst: 'lower'
+        });
+    }
     constructor(data) {
-        super();
-        this.id = data.id;
-        this.entree = data.entree;
-        this.genre = data.genre;
-        this.categorie_id = data.categorie_id;
-        this.definition = data.definition;
+        super(data);
     }
     /**
-     * Panel ID for entries
+     * Méthode de préparation de la donnée pour le cache
+     *
+     * @param item  {IEntry} Donnée telle qu'elle est relevée dans la
+     *              base de données.
      */
-    static get panelId() {
-        return 'entries';
+    static prepareItemForCache(item) {
+        const cachedItem = new Entry(item);
+        return cachedItem;
     }
     /**
      * DB class for entries

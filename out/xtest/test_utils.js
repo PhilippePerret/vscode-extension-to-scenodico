@@ -44,7 +44,7 @@ exports.setZoomLevel = setZoomLevel;
 exports.ensureDatabaseFixtures = ensureDatabaseFixtures;
 exports.allPanelsReady = allPanelsReady;
 const vscode = __importStar(require("vscode"));
-const DatabaseService_1 = require("../extension/services/DatabaseService");
+const DatabaseService_1 = require("../extension/services/db/DatabaseService");
 const TestData_1 = require("./fixtures/TestData");
 const EntryDb_1 = require("../extension/db/EntryDb");
 /**

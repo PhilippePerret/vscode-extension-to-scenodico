@@ -1,43 +1,27 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Exemple = void 0;
-const BaseModel_1 = require("./BaseModel");
-const ExempleDb_1 = require("../db/ExempleDb");
-class Exemple extends BaseModel_1.BaseModel {
+const UExemple_1 = require("../../bothside/UExemple");
+// La donnée telle qu'elle sera en cache
+class Exemple extends UExemple_1.UExemple {
+    static panelId = 'exemples';
     id; // Computed composite key
-    oeuvre_id;
-    indice;
-    entry_id;
-    content;
-    notes;
+    static sortFonction(a, b) {
+        // First sort by oeuvre ID (oeuvre_id)
+        const oeuvreComparison = a.oeuvre_id.localeCompare(b.oeuvre_id);
+        if (oeuvreComparison !== 0) {
+            return oeuvreComparison;
+        }
+        return a.indice - b.indice;
+    }
     constructor(data) {
-        super();
-        this.oeuvre_id = data.oeuvre_id;
-        this.indice = data.indice;
-        this.entry_id = data.entry_id;
-        this.content = data.content;
-        this.notes = data.notes;
+        super(data);
         // Set computed id as a real property for JSON serialization
         this.id = `${this.oeuvre_id}-${this.indice}`;
     }
-    /**
-     * Panel ID for exemples
-     */
-    static get panelId() {
-        return 'exemples';
-    }
-    /**
-     * DB class for exemples
-     */
-    static get DbClass() {
-        return ExempleDb_1.ExempleDb;
-    }
-    /**
-     * Get composite key for unique identification
-     * @deprecated Use id instead
-     */
-    get compositeKey() {
-        return this.id;
+    static prepareItemForCache(item) {
+        const cachedItem = new Exemple(item);
+        return cachedItem;
     }
     /**
      * Validate exemple data

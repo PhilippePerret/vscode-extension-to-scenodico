@@ -36,10 +36,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.activate = activate;
 exports.deactivate = deactivate;
 const vscode = __importStar(require("vscode"));
-const PanelManager_1 = require("./services/PanelManager");
+const App_1 = require("./services/App");
 function activate(context) {
     const disposable = vscode.commands.registerCommand('dico-cnario.ouvre', () => {
-        PanelManager_1.PanelManager.openPanels(context);
+        App_1.App.run(context);
     });
     const devToolsDisposable = vscode.commands.registerCommand('dico-cnario.dev-tools', () => {
         vscode.commands.executeCommand('workbench.action.webview.openDeveloperTools');

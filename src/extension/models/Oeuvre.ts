@@ -1,5 +1,4 @@
-import { BaseModel } from './BaseModel';
-import { OeuvreDb } from '../db/OeuvreDb';
+import { UOeuvre } from '../../bothside/UOeuvre';
 import { CacheableItem } from '../services/cache/CacheManager';
 
 export interface IOeuvre {
@@ -13,9 +12,10 @@ export interface IOeuvre {
     resume?: string;
 }
 
-export class Oeuvre extends BaseModel {
-    public id: string;
-    public titre_affiche: string;
+export class Oeuvre extends UOeuvre {
+    public static panelId = 'oeuvres';
+    public id = '';
+    public titre_affiche = '';
     public titre_original?: string;
     public titre_francais?: string;
     public annee?: number;
@@ -23,36 +23,23 @@ export class Oeuvre extends BaseModel {
     public notes?: string;
     public resume?: string;
 
+    public static sortFonction(a:Oeuvre, b:Oeuvre): number {
+        const titleA = a.titre_original || a.titre_affiche;
+        const titleB = b.titre_original || b.titre_affiche;
+        return titleA.localeCompare(titleB, 'fr', {
+            sensitivity: 'base',
+            numeric: true,
+            caseFirst: 'lower'
+        });
+    }
     constructor(data: IOeuvre) {
-        super();
-        this.id = data.id;
-        this.titre_affiche = data.titre_affiche;
-        this.titre_original = data.titre_original;
-        this.titre_francais = data.titre_francais;
-        this.annee = data.annee;
-        this.auteurs = data.auteurs;
-        this.notes = data.notes;
-        this.resume = data.resume;
+        super(data);
     }
 
     static prepareItemForCache(item: IOeuvre): CacheableItem  {
 
         // TODO Reprend la méthode qui était en webview
         return item as CacheableItem; 
-    }
-
-    /**
-     * Panel ID for oeuvres
-     */
-    static get panelId(): string {
-        return 'oeuvres';
-    }
-
-    /**
-     * DB class for oeuvres
-     */
-    static get DbClass(): typeof OeuvreDb {
-        return OeuvreDb;
     }
 
     /**

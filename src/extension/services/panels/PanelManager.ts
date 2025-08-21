@@ -6,11 +6,41 @@ import { PanelClassExemple } from './panelClassExemple';
 import { Entry } from '../../models/Entry';
 import { Exemple } from '../../models/Exemple';
 import { Oeuvre } from '../../models/Oeuvre';
-import { DatabaseService } from '../db/DatabaseService';
 import { PanelWrapper, WebviewPanelWrapper } from '../InterComs';
 
 export class PanelManager {
+	private static _panels: PanelClass[] = [];
 	private static activePanels: vscode.WebviewPanel[] = [];
+
+	/**
+	 * Appelé à l'ouverture normale de l'application.
+	 * @param context Les contexte de l'extension
+	 */
+	static async openPanels(c: vscode.ExtensionContext): Promise<void> {
+		// Fermer les panneaux existants d'abord
+		this.closeAllPanels();
+		
+		// On définit les options communes pour la construction des
+		// panneaux
+		PanelClass.defineCommonPanelOptions(c) ; 
+		
+		this._panels.push(new PanelClassDico({context:c}));
+		this._panels.push(new PanelClassOeuvre({context:c}));
+		this._panels.push(new PanelClassExemple({context:c}));
+		
+	}
+
+	/**
+	 * Appelée après la mise en cache des données pour peupler les panneaux.
+	 */
+	public static populatePanels(){
+		console.log("[EXTENSION] Je dois apprendre à peupler les panneaux");
+		this._panels.forEach(panel => {
+			// TODO Appeler le peuplement de chaque panneau (la fonction existe déjà mais il faut maintenant lui envoyer les données)
+		});
+		console.info("[EXTENSION] Fin de peuplement des panneaux.");
+
+	}
 
 	// Retourne les trois panneaux (Dictionnaire, Oeuvres et Exemples)
 	static getActivePanels(): vscode.WebviewPanel[] {
@@ -31,52 +61,7 @@ export class PanelManager {
 		if (!panel) { return null; }
 		return new WebviewPanelWrapper(panel);
 	}
-
-	// Pour ouvrir les trois panneaux
-	static async openPanels(context: vscode.ExtensionContext): Promise<void> {
-		// Fermer les panneaux existants d'abord
-		this.closeAllPanels();
-		
-		// On définit les options communes pour la construction des
-		// panneaux
-		PanelClass.defineCommonPanelOptions(context) ; 
-		
-		const panelDico = new PanelClassDico({ context: context});
-		const panelOeuvres = new PanelClassOeuvre({ context: context });
-		const panelExemples = new PanelClassExemple({context: context });
-		
-		const panels = [panelDico, panelOeuvres, panelExemples];
-	
-		// Après avoir créé les panneaux (vierge, avec les éléments
-		// minimums), on charge les données.
-		// Note : les données sont mises en cache côté extension pour
-		// pouvoir les "dispatcher" aux trois panneaux
-		panels.forEach(panel => { panel.loadAndCacheAllData(); });
-		await this.waitUntilReady();
-		console.info("[EXTENSION] Fin de mise en cache des données");
- 
-		// Peuplement des panneaux
-		panels.forEach(panel => { panel.populateWebview(); });
-		await this.waitUntilReady();
-		console.info("[EXTENSION] Fin de peuplement des panneau.");
-	}
-
-	public static readyCounter = 0 ;
-	public static okWhenReady: Function;
-
-	private static async waitUntilReady() {
-		return new Promise<void>((ok) => {
-			this.readyCounter = 0;
-			this.okWhenReady = ok;
-		});
-	}
-	public static incAndCheckReadyCounter(){
-		this.readyCounter ++;
-			if ( this.readyCounter >= 3 ) {
-			this.okWhenReady();
-		}
-	}
-	/**
+/**
 	 * Generic method to generate HTML for any panel using Model classes
 	 */
 	private static getPanelHtml(context: vscode.ExtensionContext, webview: vscode.Webview, ModelClass: typeof Entry | typeof Oeuvre | typeof Exemple, title: string): string {
@@ -127,10 +112,6 @@ export class PanelManager {
 	 */
 	private static async populatePanel(context: vscode.ExtensionContext, webview: vscode.Webview, ModelClass: typeof Entry | typeof Oeuvre | typeof Exemple): Promise<void> {
 		try {
-			const isTest = process.env.NODE_ENV === 'test' || context.extensionMode === vscode.ExtensionMode.Test;
-			const dbService = DatabaseService.getInstance(context, isTest);
-			await dbService.initialize();
-
 			// Send to webview
 			const message = {
 				command: 'populate',
@@ -147,7 +128,6 @@ export class PanelManager {
 			});
 		}
 	}
-
 
 	private static generatePanelHtml(context: vscode.ExtensionContext, webview: vscode.Webview, options: {
 		panelId?: string;

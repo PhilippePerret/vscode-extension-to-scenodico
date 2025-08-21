@@ -1,7 +1,4 @@
-import { Entry } from "./Entry";
-import { Exemple } from "./Exemple";
-import { Oeuvre } from "./Oeuvre";
-import { TypeUnionElement, TypeUnionClasse } from "./UnversalConstants";
+import { TypeUnionElement, TypeUnionClasse } from './UnversalConstants';
 
 // Les données brutes telles qu'elles sont relevées dans la base
 export interface RawData {

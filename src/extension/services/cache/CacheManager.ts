@@ -22,21 +22,10 @@ export class CacheManager<TRaw extends CacheableItem, TCached extends CacheableI
  * @param itemClass La classe de l'élément transmis 
  */
  prepareCacheWithData(
-    rawData: TRaw[],
-    itemClass: AnyElementClass
   ): void {
-    this._cache.clear();
-    rawData.forEach(item => {
-      this._cache.set(item.id, itemClass.prepareItemForCache(item) as TCached);
-    });
-    this._isPrepared = true ;
-    console.log(`[WEBVIEW] Cache préparé pour ${itemClass.name}: ${this._cache.size} éléments`);
   }
   
   finalizeCachedData(
-    finalizeItemMethod: (item: CacheableItem) => void,
-    debugName: string
   ): void {
-    this.forEach(item => finalizeItemMethod(item));
   }
 }

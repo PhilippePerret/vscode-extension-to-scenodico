@@ -30,24 +30,10 @@ export class PanelClass {
     );
   }
 
-  // Charge toutes les données
-  public async loadAndCacheAllData(): Promise<boolean> {
-    const context = this._context ;
-    const isTest = process.env.NODE_ENV === 'test' || context.extensionMode === vscode.ExtensionMode.Test;
-    const dbService = DatabaseService.getInstance(context, isTest);
-    dbService.initialize();
-    const Db = this.getDB() ;
-    const db = new Db(dbService);
-    const rawItems = await db.getAll();
-    const sortedItems = rawItems.sort(this.sortFonction.bind(this));
-    PanelManager.incAndCheckReadyCounter();
-    return true ; 
-  }
-
   // La différence avec avant, c'est que là, il faut envoyer les données en cache
   // pour que la webview puisse peupler la vue
   public async populateWebview(): Promise<boolean> {
-    PanelManager.incAndCheckReadyCounter(); // <== NON, IL FAUDRA QUE LA VUE LE CONFIRME
+    console.warn("Il faut apprendre à peupler le webview/panneau");
     return true ;
   }
 
