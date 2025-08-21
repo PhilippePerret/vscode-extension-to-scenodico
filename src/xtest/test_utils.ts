@@ -4,7 +4,7 @@
  */
 
 import * as vscode from 'vscode';
-import { DatabaseService } from '../extension/services/DatabaseService';
+import { DatabaseService } from '../extension/services/db/DatabaseService';
 import { TestData } from './fixtures/TestData';
 import { EntryDb } from '../extension/db/EntryDb';
 

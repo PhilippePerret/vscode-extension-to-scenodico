@@ -34,5 +34,6 @@
 	},
 	"editor.guides.highlightActiveBracketPair": false,
 	"editor.bracketPairColorization.enabled": false,
-	"editor.matchBrackets": "never"
+	"editor.matchBrackets": "never",
+	"workbench.editor.closeEmptyGroups": false
 }

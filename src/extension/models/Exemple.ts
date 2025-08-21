@@ -1,7 +1,9 @@
 import * as vscode from 'vscode';
 import { BaseModel } from './BaseModel';
 import { ExempleDb } from '../db/ExempleDb';
+import { CacheableItem } from '../services/cache/CacheManager';
 
+// La donnée persistante
 export interface IExemple {
     oeuvre_id: string;
     indice: number;
@@ -10,6 +12,7 @@ export interface IExemple {
     notes?: string;
 }
 
+// La donnée telle qu'elle sera en cache
 export class Exemple extends BaseModel {
     public id: string; // Computed composite key
     public oeuvre_id: string;
@@ -30,6 +33,10 @@ export class Exemple extends BaseModel {
         this.id = `${this.oeuvre_id}-${this.indice}`;
     }
 
+    static prepareItemForCache(item: IExemple): CacheableItem {
+        const cachedItem = new Exemple(item);
+        return cachedItem as CacheableItem; 
+    }
     /**
      * Panel ID for exemples
      */

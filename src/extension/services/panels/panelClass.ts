@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
-import { Entry } from '../models/Entry';
-import { Exemple } from '../models/Exemple';
-import { Oeuvre } from '../models/Oeuvre';
-import { DatabaseService } from './DatabaseService';
+import { Entry } from '../../models/Entry';
+import { Exemple } from '../../models/Exemple';
+import { Oeuvre } from '../../models/Oeuvre';
+import { DatabaseService } from '../db/DatabaseService';
+import { PanelManager } from './PanelManager';
 
 /**
  * Classe d'un panneau quelconque
@@ -39,13 +40,14 @@ export class PanelClass {
     const db = new Db(dbService);
     const rawItems = await db.getAll();
     const sortedItems = rawItems.sort(this.sortFonction.bind(this));
-    console.log("Données relevées pour la panneau %s :", this.title, sortedItems);
-    return true ; // Si tout se passe bien
+    PanelManager.incAndCheckReadyCounter();
+    return true ; 
   }
 
   // La différence avec avant, c'est que là, il faut envoyer les données en cache
   // pour que la webview puisse peupler la vue
   public async populateWebview(): Promise<boolean> {
+    PanelManager.incAndCheckReadyCounter(); // <== NON, IL FAUDRA QUE LA VUE LE CONFIRME
     return true ;
   }
 
@@ -54,7 +56,7 @@ export class PanelClass {
   // Fonction qui doit être surclassée par les héritières
   protected getDB(): any { }
  
- // Les options communes pour construire le panneau
+ // Les options communes pour construire tous les panneaux
   public static get commonPanelOptions(): Record<string, any> { return this._commonPanelOptions ; }
   private static _commonPanelOptions: Record<string, any>;
   public static defineCommonPanelOptions(context: vscode.ExtensionContext) {

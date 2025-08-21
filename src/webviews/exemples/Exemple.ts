@@ -1,6 +1,6 @@
 import '../common'; 
 import { CommonClassItem, ItemData } from '../CommonClassItem';
-import { AnyCachedData, CachedExempleData, StringNormalizer } from '../CacheTypes';
+import { AnyCachedData, CachedExempleData, StringNormalizer } from '../../extension/services/cache/CacheTypes';
 import { CacheManager } from '../CacheManager';
 import { Oeuvre } from '../oeuvres/Oeuvre';
 import { Entry } from '../entries/Entry';

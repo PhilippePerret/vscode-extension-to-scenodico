@@ -1,5 +1,6 @@
 import { BaseModel } from './BaseModel';
 import { OeuvreDb } from '../db/OeuvreDb';
+import { CacheableItem } from '../services/cache/CacheManager';
 
 export interface IOeuvre {
     id: string;
@@ -32,6 +33,12 @@ export class Oeuvre extends BaseModel {
         this.auteurs = data.auteurs;
         this.notes = data.notes;
         this.resume = data.resume;
+    }
+
+    static prepareItemForCache(item: IOeuvre): CacheableItem  {
+
+        // TODO Reprend la méthode qui était en webview
+        return item as CacheableItem; 
     }
 
     /**

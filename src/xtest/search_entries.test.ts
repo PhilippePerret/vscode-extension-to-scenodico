@@ -1,6 +1,6 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { PanelManager } from '../extension/services/PanelManager';
+import { PanelManager } from '../extension/services/panels/PanelManager';
 import { sleep, ensureDatabaseFixtures, allPanelsReady } from './test_utils';
 
 suite('Recherche/Filtrage des Entrées', () => {

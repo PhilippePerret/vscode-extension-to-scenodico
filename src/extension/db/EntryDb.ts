@@ -1,4 +1,4 @@
-import { DatabaseService } from '../services/DatabaseService';
+import { DatabaseService } from '../services/db/DatabaseService';
 import { Entry, IEntry } from '../models/Entry';
 
 export class EntryDb {

@@ -37,62 +37,14 @@ export abstract class CommonClassItem {
    * Formate une propriété pour l'affichage
    * DOIT être surchargée par chaque classe fille
    */
-  static formateProp(prop: string, value: any): string {
-    throw new Error('formateProp must be implemented by subclass');
-  }
 
-  /**
-   * Prépare un item pour le cache de recherche
-   * DOIT être surchargée par chaque classe fille
-   */
-  static prepareItemForCache(item: ItemData): any {
-    throw new Error('prepareItemForCache must be implemented by subclass');
-  }
-  // Doit être écrasé par chaque classe d'élément
-  static finalizeCachedItem(item: CacheableItem): void {
-    throw new Error(`finalizeCachedItem doit être implémenté par chaque élément`);
-  }
-  // Doit être écrasé par chaque classe fille (il semble que je doive
+ // Doit être écrasé par chaque classe fille (il semble que je doive
   // faire comme ça pour ne pas avoir d'erreur d'absence de méthode)
   protected static searchMatchingItems(searched: string): AnyCachedData[]{
     throw new Error(`La méthode searchMatchingItems doit être implémentée par la classe ${this.name}`);
   }
 
-  /**
-   * Construit le cache à partir des données en base de données
-   * Dans un premier temps, les données sont mises telle quelles
-   * Puis, une fois qu'elles seront toutes chargées (pour tous les
-   * éléments) on pourra préparer chaque item.
-   */
-  static buildCache(bddData: ItemData[]): void {
-    try {
-      this.cacheManager.prepareCacheWithData(
-        bddData,
-        (item) => this.prepareItemForCache(item),
-        (this as any).minName
-      );
-    } catch (error) {
-      console.error(`[WEBVIEW ${this.name}] Cache build failed:`, error);
-      throw error;
-    }
-  }
-
-  /**
-   * Finalise les données mises en cache, maintenant qu'elles ont été
-   * chargées pour tous les éléments
-   */
-  public static finalizeCachedData(): typeof CommonClassItem {
-    try {
-      this.cacheManager.finalizeCachedData(
-        (item) => this.finalizeCachedItem(item),
-        (this as any).minName
-      );
-    } catch (error) {
-      console.error(`[WEBVIEW ${this.name}] Finalisation cached data failed:`, error);
-    }
-    return this; // pour le chainage
-  }
-  /**
+ /**
    * Peuple le panneau de l'élément avec les données mises en cache
    */
   public static populatePanel(): typeof CommonClassItem {

@@ -1,5 +1,5 @@
 import { PanelClass } from './panelClass';
-import { Exemple } from '../models/Exemple';
+import { Exemple } from '../../models/Exemple';
 
 export class PanelClassExemple extends PanelClass {
   protected _type = 'exemple' ;

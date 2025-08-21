@@ -1,6 +1,6 @@
 import '../common';
 import { CacheableItem, CacheManager } from '../CacheManager';
-import { CachedOeuvreData, StringNormalizer } from '../CacheTypes';
+import { CachedOeuvreData, StringNormalizer } from '../../extension/services/cache/CacheTypes';
 import { CommonClassItem, ItemData } from '../CommonClassItem';
 
 export interface OeuvreData extends ItemData {

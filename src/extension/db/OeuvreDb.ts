@@ -1,4 +1,4 @@
-import { DatabaseService } from '../services/DatabaseService';
+import { DatabaseService } from '../services/db/DatabaseService';
 import { Oeuvre, IOeuvre } from '../models/Oeuvre';
 
 export class OeuvreDb {

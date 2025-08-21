@@ -1,6 +1,6 @@
 import '../common';
 import { CommonClassItem, ItemData } from '../CommonClassItem';
-import { CachedEntryData, StringNormalizer } from '../CacheTypes';
+import { CachedEntryData, StringNormalizer } from '../../extension/services/cache/CacheTypes';
 import { CacheableItem, CacheManager } from '../CacheManager';
 
 export interface EntryData extends ItemData {
@@ -12,25 +12,9 @@ export interface EntryData extends ItemData {
 
 export class Entry extends CommonClassItem {
   static readonly minName = 'entry';
-  
-  // Cache manager spécifique aux entrées
-  private static _cacheManagerInstance: CacheManager<EntryData, CachedEntryData> = new CacheManager();
-  
-  protected static get cacheManager(): CacheManager<EntryData, CachedEntryData> {
-    return this._cacheManagerInstance;
-  }
-  
+ 
   static readonly ERRORS = {
     'no-items': 'Aucune entrée dans la base, bizarrement…',
-  };
-
-  static readonly GENRES = {
-    'nm': 'n.m.',
-    'nf': 'n.f.',
-    'np': 'n.pl.',
-    'vb': 'verbe',
-    'adj': 'adj.',
-    'adv': 'adv.'
   };
 
   /**

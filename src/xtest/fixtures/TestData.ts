@@ -1,7 +1,7 @@
 import { Entry, IEntry } from '../../extension/models/Entry';
 import { Oeuvre, IOeuvre } from '../../extension/models/Oeuvre';
 import { Exemple, IExemple } from '../../extension/models/Exemple';
-import { DatabaseService } from '../../extension/services/DatabaseService';
+import { DatabaseService } from '../../extension/services/db/DatabaseService';
 import { EntryDb } from '../../extension/db/EntryDb';
 import { OeuvreDb } from '../../extension/db/OeuvreDb';
 import { ExempleDb } from '../../extension/db/ExempleDb';

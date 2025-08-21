@@ -2,12 +2,12 @@ import * as vscode from 'vscode';
 import { PanelClass } from './panelClass' ;
 import { PanelClassDico } from './panelClassDico';
 import { PanelClassOeuvre } from './panelClassOeuvre';
-import { Entry } from '../models/Entry';
-import { Exemple } from '../models/Exemple';
-import { Oeuvre } from '../models/Oeuvre';
-import { DatabaseService } from './DatabaseService';
-import { PanelWrapper, WebviewPanelWrapper } from './InterComs';
 import { PanelClassExemple } from './panelClassExemple';
+import { Entry } from '../../models/Entry';
+import { Exemple } from '../../models/Exemple';
+import { Oeuvre } from '../../models/Oeuvre';
+import { DatabaseService } from '../db/DatabaseService';
+import { PanelWrapper, WebviewPanelWrapper } from '../InterComs';
 
 export class PanelManager {
 	private static activePanels: vscode.WebviewPanel[] = [];
@@ -52,25 +52,29 @@ export class PanelManager {
 		// Note : les données sont mises en cache côté extension pour
 		// pouvoir les "dispatcher" aux trois panneaux
 		panels.forEach(panel => { panel.loadAndCacheAllData(); });
-		await this.cachedDataLoadedInPanels();
+		await this.waitUntilReady();
 		console.info("[EXTENSION] Fin de mise en cache des données");
  
 		// Peuplement des panneaux
 		panels.forEach(panel => { panel.populateWebview(); });
-		// TODO Placer une attente pour savoir si les panneaux se sont bien peuplés.
+		await this.waitUntilReady();
 		console.info("[EXTENSION] Fin de peuplement des panneau.");
 	}
 
-	private static async cachedDataLoadedInPanels() {
+	public static readyCounter = 0 ;
+	public static okWhenReady: Function;
+
+	private static async waitUntilReady() {
 		return new Promise<void>((ok) => {
-			let readyCount = 0;
-			this.activePanels.forEach((panel) => {
-				const webview = panel.webview;
-				webview.onDidReceiveMessage((message) => {
-					if (message.command === 'data-cached') { if ( ++ readyCount >= 3) { ok(); } }
-				});
-			});
+			this.readyCounter = 0;
+			this.okWhenReady = ok;
 		});
+	}
+	public static incAndCheckReadyCounter(){
+		this.readyCounter ++;
+			if ( this.readyCounter >= 3 ) {
+			this.okWhenReady();
+		}
 	}
 	/**
 	 * Generic method to generate HTML for any panel using Model classes

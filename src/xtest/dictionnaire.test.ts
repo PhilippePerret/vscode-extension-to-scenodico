@@ -1,8 +1,8 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { PanelManager } from '../extension/services/PanelManager';
+import { PanelManager } from '../extension/services/panels/PanelManager';
 import { sleep, ensureDatabaseFixtures, allPanelsReady } from './test_utils';
-import { DatabaseService } from '../extension/services/DatabaseService';
+import { DatabaseService } from '../extension/services/db/DatabaseService';
 import { TestData } from './fixtures/TestData';
 
 suite('Panneau Dictionnaire', () => {

@@ -1,4 +1,4 @@
-import { DatabaseService } from '../services/DatabaseService';
+import { DatabaseService } from '../services/db/DatabaseService';
 import { Exemple, IExemple } from '../models/Exemple';
 
 export class ExempleDb {

@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { PanelManager } from './services/PanelManager';
+import { App } from './services/App';
 
 export function activate(context: vscode.ExtensionContext) {
 
 	const disposable = vscode.commands.registerCommand('dico-cnario.ouvre', () => {
-		PanelManager.openPanels(context);
+		App.run(context);
 	});
 
 	const devToolsDisposable = vscode.commands.registerCommand('dico-cnario.dev-tools', () => {

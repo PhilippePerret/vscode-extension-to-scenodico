@@ -7,7 +7,7 @@
 
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { PanelManager } from '../extension/services/PanelManager';
+import { PanelManager } from '../extension/services/panels/PanelManager';
 import { closeAllTabs, sleep, allPanelsReady, ensureDatabaseFixtures } from './test_utils';
 
 suite('Panneau Exemples', () => {

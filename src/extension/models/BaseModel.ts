@@ -1,11 +1,13 @@
-import { DatabaseService } from '../services/DatabaseService';
+import { CacheableItem } from '../services/cache/CacheManager';
+import { DatabaseService } from '../services/db/DatabaseService';
 
 export abstract class BaseModel {
 
     // public static MESSAGES = {
 
     // };
-    
+
+
     // static message(msgId: string) {
     //     return this.MESSAGES[msgId];
     // }
