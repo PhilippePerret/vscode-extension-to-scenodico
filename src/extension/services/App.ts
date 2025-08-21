@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { PanelManager } from './panels/PanelManager';
 import { DatabaseService } from './db/DatabaseService';
 import { Entry } from '../models/Entry';
+import { Oeuvre } from '../models/Oeuvre';
+import { Exemple } from '../models/Exemple';
 
 export class App {
   public static _context: vscode.ExtensionContext;
@@ -15,6 +17,7 @@ export class App {
     this._context = context; 
     PanelManager.openPanels(context);
     await this.loadAndCacheAllData();
+    return console.warn("Je m'arrête là pour la moment.");
     PanelManager.populatePanels();
   }
  
@@ -39,16 +42,22 @@ export class App {
     if (this.readyCounter <= 0) { this.okWhenReady(); }
 	}
 	
+  /**
+   * @async
+   * Méthode principale qui récupère les données de la base de données
+   * et les met en cache.
+   */
   private static async loadAndCacheAllData() {
     const { EntryDb }   = require('../db/EntryDb');
     const { OeuvreDb }  = require('../db/OeuvreDb');
-    const { ExempleDb } = require('../db/EntryDb');
+    const { ExempleDb } = require('../db/ExempleDb');
     Promise.all([
-      this.loadAndCacheDataFor(EntryDb, Entry.sortFonction.bind(Entry))
+      this.loadAndCacheDataFor(EntryDb, Entry.sortFonction.bind(Entry)),
+      this.loadAndCacheDataFor(OeuvreDb, Oeuvre.sortFonction.bind(Oeuvre)),
+      this.loadAndCacheDataFor(ExempleDb, Exemple.sortFonction.bind(Exemple))
     ]);
     await this.waitUntilReady(3);
 		console.info("[EXTENSION] Fin de mise en cache de toutes les données");
- 
   }
 
   private static async loadAndCacheDataFor(Db:any, sortFn: Function): Promise<boolean> {
@@ -56,6 +65,7 @@ export class App {
     const isTest = process.env.NODE_ENV === 'test' || context.extensionMode === vscode.ExtensionMode.Test;
     const dbService = DatabaseService.getInstance(context, isTest);
     dbService.initialize();
+    console.log("Db", Db);
     const db = new Db(dbService);
     const rawItems = await db.getAll();
     const sortedItems = rawItems.sort(sortFn.bind(this));

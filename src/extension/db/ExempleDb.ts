@@ -19,22 +19,6 @@ export class ExempleDb {
         return rows.map(row => Exemple.fromRow(row));
     }
 
-    async getByOeuvre(oeuvreId: string): Promise<Exemple[]> {
-        const rows = await this.dbService.all(
-            'SELECT * FROM examples WHERE oeuvre_id = ? ORDER BY indice',
-            [oeuvreId]
-        );
-        return rows.map(row => Exemple.fromRow(row));
-    }
-
-    async getByCompositeKey(oeuvreId: string, indice: number): Promise<Exemple | null> {
-        const row = await this.dbService.get(
-            'SELECT * FROM examples WHERE oeuvre_id = ? AND indice = ?',
-            [oeuvreId, indice]
-        );
-        return row ? Exemple.fromRow(row) : null;
-    }
-
     async create(exemple: Exemple): Promise<void> {
         const row = exemple.toRow();
         await this.dbService.run(
@@ -53,14 +37,6 @@ export class ExempleDb {
 
     async delete(oeuvreId: string, indice: number): Promise<void> {
         await this.dbService.run('DELETE FROM examples WHERE oeuvre_id = ? AND indice = ?', [oeuvreId, indice]);
-    }
-
-    async getNextIndice(oeuvreId: string): Promise<number> {
-        const row = await this.dbService.get(
-            'SELECT MAX(indice) as maxIndice FROM examples WHERE oeuvre_id = ?',
-            [oeuvreId]
-        );
-        return (row?.maxIndice || 0) + 1;
     }
 
     async exists(oeuvreId: string, indice: number): Promise<boolean> {

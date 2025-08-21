@@ -2,7 +2,6 @@ import { AnyElementType, AnyElementClass } from "../../models/AnyElement";
 import { AnyCachedData } from "./CacheTypes";
 
 export interface CacheableItem {
-  id: string;
   [key: string]: any;
 }
 

@@ -38,19 +38,6 @@ export class EntryDb {
         await this.dbService.run('DELETE FROM entries WHERE id = ?', [id]);
     }
 
-    async search(searchTerm: string): Promise<Entry[]> {
-        const rows = await this.dbService.all(
-            'SELECT * FROM entries WHERE entree LIKE ? ORDER BY entree COLLATE NOCASE',
-            [`%${searchTerm}%`]
-        );
-        return rows.map(row => Entry.fromRow(row));
-    }
-
-    async getAllIds(): Promise<Set<string>> {
-        const rows = await this.dbService.all('SELECT id FROM entries');
-        return new Set(rows.map(row => row.id));
-    }
-
     async exists(id: string): Promise<boolean> {
         const row = await this.dbService.get('SELECT 1 FROM entries WHERE id = ? LIMIT 1', [id]);
         return !!row;

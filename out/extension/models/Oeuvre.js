@@ -4,14 +4,8 @@ exports.Oeuvre = void 0;
 const UOeuvre_1 = require("../../bothside/UOeuvre");
 class Oeuvre extends UOeuvre_1.UOeuvre {
     static panelId = 'oeuvres';
-    id = '';
-    titre_affiche = '';
     titre_original;
     titre_francais;
-    annee;
-    auteurs;
-    notes;
-    resume;
     static sortFonction(a, b) {
         const titleA = a.titre_original || a.titre_affiche;
         const titleB = b.titre_original || b.titre_affiche;
@@ -160,16 +154,7 @@ class Oeuvre extends UOeuvre_1.UOeuvre {
      * Create from database row
      */
     static fromRow(row) {
-        return new Oeuvre({
-            id: row.id,
-            titre_affiche: row.titre_affiche,
-            titre_original: row.titre_original,
-            titre_francais: row.titre_francais,
-            annee: row.annee,
-            auteurs: row.auteurs,
-            notes: row.notes,
-            resume: row.resume
-        });
+        return new Oeuvre(row);
     }
     /**
      * Sort function for oeuvres (by titre_original, respecting accents/diacritics)
@@ -182,14 +167,6 @@ class Oeuvre extends UOeuvre_1.UOeuvre {
             numeric: true,
             caseFirst: 'lower'
         });
-    }
-    /**
-     * Post-processing after DOM elements are displayed
-     * Called after all oeuvres are rendered in the panel
-     */
-    static afterDisplayElements() {
-        // No special post-processing needed for oeuvres panel
-        // Elements are displayed in simple list format
     }
 }
 exports.Oeuvre = Oeuvre;

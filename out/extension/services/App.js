@@ -38,6 +38,8 @@ const vscode = __importStar(require("vscode"));
 const PanelManager_1 = require("./panels/PanelManager");
 const DatabaseService_1 = require("./db/DatabaseService");
 const Entry_1 = require("../models/Entry");
+const Oeuvre_1 = require("../models/Oeuvre");
+const Exemple_1 = require("../models/Exemple");
 class App {
     static _context;
     /**
@@ -49,6 +51,7 @@ class App {
         this._context = context;
         PanelManager_1.PanelManager.openPanels(context);
         await this.loadAndCacheAllData();
+        return console.warn("Je m'arrête là pour la moment.");
         PanelManager_1.PanelManager.populatePanels();
     }
     /**
@@ -72,12 +75,19 @@ class App {
             this.okWhenReady();
         }
     }
+    /**
+     * @async
+     * Méthode principale qui récupère les données de la base de données
+     * et les met en cache.
+     */
     static async loadAndCacheAllData() {
         const { EntryDb } = require('../db/EntryDb');
         const { OeuvreDb } = require('../db/OeuvreDb');
-        const { ExempleDb } = require('../db/EntryDb');
+        const { ExempleDb } = require('../db/ExempleDb');
         Promise.all([
-            this.loadAndCacheDataFor(EntryDb, Entry_1.Entry.sortFonction.bind(Entry_1.Entry))
+            this.loadAndCacheDataFor(EntryDb, Entry_1.Entry.sortFonction.bind(Entry_1.Entry)),
+            this.loadAndCacheDataFor(OeuvreDb, Oeuvre_1.Oeuvre.sortFonction.bind(Oeuvre_1.Oeuvre)),
+            this.loadAndCacheDataFor(ExempleDb, Exemple_1.Exemple.sortFonction.bind(Exemple_1.Exemple))
         ]);
         await this.waitUntilReady(3);
         console.info("[EXTENSION] Fin de mise en cache de toutes les données");
@@ -87,6 +97,7 @@ class App {
         const isTest = process.env.NODE_ENV === 'test' || context.extensionMode === vscode.ExtensionMode.Test;
         const dbService = DatabaseService_1.DatabaseService.getInstance(context, isTest);
         dbService.initialize();
+        console.log("Db", Db);
         const db = new Db(dbService);
         const rawItems = await db.getAll();
         const sortedItems = rawItems.sort(sortFn.bind(this));

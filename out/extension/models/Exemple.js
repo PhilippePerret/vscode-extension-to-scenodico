@@ -16,43 +16,11 @@ class Exemple extends UExemple_1.UExemple {
     }
     constructor(data) {
         super(data);
-        // Set computed id as a real property for JSON serialization
         this.id = `${this.oeuvre_id}-${this.indice}`;
     }
     static prepareItemForCache(item) {
         const cachedItem = new Exemple(item);
         return cachedItem;
-    }
-    /**
-     * Validate exemple data
-     */
-    static validate(data) {
-        const errors = [];
-        if (!data.oeuvre_id?.trim()) {
-            errors.push('ID de l\'œuvre requis');
-        }
-        if (data.indice === undefined || data.indice < 1) {
-            errors.push('Indice requis (>= 1)');
-        }
-        if (!data.entry_id?.trim()) {
-            errors.push('ID de l\'entrée requis');
-        }
-        if (!data.content?.trim()) {
-            errors.push('Contenu requis');
-        }
-        return errors;
-    }
-    /**
-     * Get next available indice for a given oeuvre
-     * Note: This method needs access to existing exemples for the oeuvre
-     */
-    static getNextIndice(titreId, existingExemples) {
-        const oeuvreExemples = existingExemples.filter(ex => ex.oeuvre_id === titreId);
-        if (oeuvreExemples.length === 0) {
-            return 1;
-        }
-        const maxIndice = Math.max(...oeuvreExemples.map(ex => ex.indice));
-        return maxIndice + 1;
     }
     /**
      * Convert to database row
@@ -71,13 +39,7 @@ class Exemple extends UExemple_1.UExemple {
      * Create from database row
      */
     static fromRow(row) {
-        return new Exemple({
-            oeuvre_id: row.oeuvre_id,
-            indice: row.indice,
-            entry_id: row.entry_id,
-            content: row.content,
-            notes: row.notes
-        });
+        return new Exemple(row);
     }
     /**
      * Sort function for exemples (by oeuvre_id then by indice)

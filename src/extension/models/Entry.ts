@@ -14,19 +14,13 @@ export interface IEntry {
 // Classe de la donnée mise en cache
 export class Entry extends UEntry {
 	public static panelId: string = 'entries';
+	[key: string]: any;
 	private static _cacheManagerInstance: CacheManager<IEntry, Entry> = new CacheManager();
-	public id = '';
-	public entree = '';
-	private genre = 'nm';
-	private genre_formated?: string;
-	private categorie_id?: string;
-	public categorie?: string; // valeur humanisée
-	public definition = '';
 
 	public static MESSAGES = {
 		'loading-message': "Chargement des entrées du dictionnaire…",
 	};
-	public static sortFonction(a: Entry, b: Entry) {
+	public static sortFonction(a: Entry, b: Entry): number {
     return a.entree.localeCompare(b.entree, 'fr', {
       sensitivity: 'base',
       numeric: true,
@@ -75,27 +69,6 @@ export class Entry extends UEntry {
 	}
 
 	/**
-	 * Validate entry data
-	 */
-	static validate(data: Partial<IEntry>): string[] {
-		const errors: string[] = [];
-
-		if (!data.entree?.trim()) {
-			errors.push('Entrée requise');
-		}
-
-		if (!data.id?.trim()) {
-			errors.push('ID requis');
-		}
-
-		if (!data.definition?.trim()) {
-			errors.push('Définition requise');
-		}
-
-		return errors;
-	}
-
-	/**
 	 * Convert to database row
 	 */
 	toRow(): any {
@@ -112,13 +85,7 @@ export class Entry extends UEntry {
 	 * Create from database row
 	 */
 	static fromRow(row: any): Entry {
-		return new Entry({
-			id: row.id,
-			entree: row.entree,
-			genre: row.genre,
-			categorie_id: row.categorie_id,
-			definition: row.definition
-		});
+		return new Entry(row); 
 	}
 
 	/**

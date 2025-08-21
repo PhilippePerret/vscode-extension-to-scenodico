@@ -18,7 +18,6 @@
 
   // src/bothside/UOeuvre.ts
   var UOeuvre = class extends UniversalDicoElement {
-    titre_affiche = "--- titre affich\xE9 non d\xE9fini ---";
     constructor(data) {
       super(data);
     }

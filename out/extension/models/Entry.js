@@ -8,13 +8,6 @@ const CacheManager_1 = require("../services/cache/CacheManager");
 class Entry extends UEntry_1.UEntry {
     static panelId = 'entries';
     static _cacheManagerInstance = new CacheManager_1.CacheManager();
-    id = '';
-    entree = '';
-    genre = 'nm';
-    genre_formated;
-    categorie_id;
-    categorie; // valeur humanisée
-    definition = '';
     static MESSAGES = {
         'loading-message': "Chargement des entrées du dictionnaire…",
     };
@@ -61,22 +54,6 @@ class Entry extends UEntry_1.UEntry {
             .substring(0, 50); // Limit length
     }
     /**
-     * Validate entry data
-     */
-    static validate(data) {
-        const errors = [];
-        if (!data.entree?.trim()) {
-            errors.push('Entrée requise');
-        }
-        if (!data.id?.trim()) {
-            errors.push('ID requis');
-        }
-        if (!data.definition?.trim()) {
-            errors.push('Définition requise');
-        }
-        return errors;
-    }
-    /**
      * Convert to database row
      */
     toRow() {
@@ -92,13 +69,7 @@ class Entry extends UEntry_1.UEntry {
      * Create from database row
      */
     static fromRow(row) {
-        return new Entry({
-            id: row.id,
-            entree: row.entree,
-            genre: row.genre,
-            categorie_id: row.categorie_id,
-            definition: row.definition
-        });
+        return new Entry(row);
     }
     /**
      * Sort function for entries (by entree, respecting accents/diacritics)

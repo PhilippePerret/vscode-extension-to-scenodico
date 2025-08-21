@@ -17,14 +17,6 @@ class ExempleDb {
         `);
         return rows.map(row => Exemple_1.Exemple.fromRow(row));
     }
-    async getByOeuvre(oeuvreId) {
-        const rows = await this.dbService.all('SELECT * FROM examples WHERE oeuvre_id = ? ORDER BY indice', [oeuvreId]);
-        return rows.map(row => Exemple_1.Exemple.fromRow(row));
-    }
-    async getByCompositeKey(oeuvreId, indice) {
-        const row = await this.dbService.get('SELECT * FROM examples WHERE oeuvre_id = ? AND indice = ?', [oeuvreId, indice]);
-        return row ? Exemple_1.Exemple.fromRow(row) : null;
-    }
     async create(exemple) {
         const row = exemple.toRow();
         await this.dbService.run('INSERT INTO examples (oeuvre_id, indice, entry_id, content, notes) VALUES (?, ?, ?, ?, ?)', [row.oeuvre_id, row.indice, row.entry_id, row.content, row.notes]);
@@ -35,10 +27,6 @@ class ExempleDb {
     }
     async delete(oeuvreId, indice) {
         await this.dbService.run('DELETE FROM examples WHERE oeuvre_id = ? AND indice = ?', [oeuvreId, indice]);
-    }
-    async getNextIndice(oeuvreId) {
-        const row = await this.dbService.get('SELECT MAX(indice) as maxIndice FROM examples WHERE oeuvre_id = ?', [oeuvreId]);
-        return (row?.maxIndice || 0) + 1;
     }
     async exists(oeuvreId, indice) {
         const row = await this.dbService.get('SELECT 1 FROM examples WHERE oeuvre_id = ? AND indice = ? LIMIT 1', [oeuvreId, indice]);
