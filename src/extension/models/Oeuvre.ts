@@ -1,5 +1,5 @@
+import { UniversalCacheManager } from '../../bothside/UniversalCacheManager';
 import { UOeuvre } from '../../bothside/UOeuvre';
-import { CacheableItem } from '../services/cache/CacheManager';
 
 export interface IOeuvre {
 	id: string;
@@ -12,11 +12,23 @@ export interface IOeuvre {
 	resume?: string;
 }
 
+interface FullOeuvre extends IOeuvre {
+  resume_formated?: string;
+  titre_original?: string;
+  titre_francais?: string;
+  titre_affiche_formated?: string;
+  titre_francais_formated?: string;
+  titres: string[];                // Tous les titres combinés pour recherche
+  titresLookUp: string[];            // Versions minuscules des titres
+  auteurs_formated?: string;
+}
+
 export class Oeuvre extends UOeuvre {
-	[key: string]: any;
 	public static panelId = 'oeuvres';
-	public titre_original?: string;
-	public titre_francais?: string;
+
+	private static get cache(){ return this._cacheManagerInstance;}
+	private static _cacheManagerInstance: UniversalCacheManager<IOeuvre, FullOeuvre> = new UniversalCacheManager();
+
 
 	public static sortFonction(a: Oeuvre, b: Oeuvre): number {
 		const titleA = a.titre_original || a.titre_affiche;
@@ -30,11 +42,19 @@ export class Oeuvre extends UOeuvre {
 	constructor(data: IOeuvre) {
 		super(data);
 	}
-
-	static prepareItemForCache(item: IOeuvre): CacheableItem {
-
-		// TODO Reprend la méthode qui était en webview
-		return item as CacheableItem;
+	/**
+	 * Méthode pour préparation tous les items pour le cache
+	 */
+	public static prepareItemsForCache(items: IOeuvre[]): void {
+		this.cache.inject(items, this.prepareItemForCache.bind(this));
+		console.info("Cache après injection", this.cache);
+	}
+	/**
+	 * Méthode de préparation de la donnée pour le cache
+	 */
+	private static prepareItemForCache(item: IOeuvre): FullOeuvre {
+		const preparedItem = item as FullOeuvre;
+		return preparedItem;
 	}
 
 	/**
@@ -192,7 +212,7 @@ export class Oeuvre extends UOeuvre {
 	/**
 	 * Sort function for oeuvres (by titre_original, respecting accents/diacritics)
 	 */
-	static sortFunction(a: Oeuvre, b: Oeuvre): number {
+	static sortFunction(a:any, b:any): number {
 		const titleA = a.titre_original || a.titre_affiche;
 		const titleB = b.titre_original || b.titre_affiche;
 		return titleA.localeCompare(titleB, 'fr', {

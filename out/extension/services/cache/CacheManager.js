@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CacheManager = void 0;
+const UniversalCacheManager_1 = require("../../../bothside/UniversalCacheManager");
 /**
  * Gestionnaire de cache générique utilisant une Map indexée par ID
  * pour un accès O(1) aux éléments
@@ -9,7 +10,7 @@ exports.CacheManager = void 0;
  * La déclaration ci-dessous signifie que TRaw et TCached seront deux
  * types utilisés par la class CacheManager
  */
-class CacheManager {
+class CacheManager extends UniversalCacheManager_1.UniversalCacheManager {
     /**
      *
      * @param rawData La donnée telle qu'elle vient de la base de données

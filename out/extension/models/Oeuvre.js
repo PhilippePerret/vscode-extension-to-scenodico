@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Oeuvre = void 0;
+const UniversalCacheManager_1 = require("../../bothside/UniversalCacheManager");
 const UOeuvre_1 = require("../../bothside/UOeuvre");
 class Oeuvre extends UOeuvre_1.UOeuvre {
     static panelId = 'oeuvres';
-    titre_original;
-    titre_francais;
+    static get cache() { return this._cacheManagerInstance; }
+    static _cacheManagerInstance = new UniversalCacheManager_1.UniversalCacheManager();
     static sortFonction(a, b) {
         const titleA = a.titre_original || a.titre_affiche;
         const titleB = b.titre_original || b.titre_affiche;
@@ -18,9 +19,19 @@ class Oeuvre extends UOeuvre_1.UOeuvre {
     constructor(data) {
         super(data);
     }
+    /**
+     * Méthode pour préparation tous les items pour le cache
+     */
+    static prepareItemsForCache(items) {
+        this.cache.inject(items, this.prepareItemForCache.bind(this));
+        console.info("Cache après injection", this.cache);
+    }
+    /**
+     * Méthode de préparation de la donnée pour le cache
+     */
     static prepareItemForCache(item) {
-        // TODO Reprend la méthode qui était en webview
-        return item;
+        const preparedItem = item;
+        return preparedItem;
     }
     /**
      * Get the title to use for sorting (French if exists, otherwise original)

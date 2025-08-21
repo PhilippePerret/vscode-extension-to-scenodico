@@ -1,6 +1,3 @@
-import { CacheManager, CacheableItem } from './CacheManager';
-import { AnyCachedData, CachedExempleData } from './CacheTypes';
-
 // export interface ItemData extends CacheableItem {
 //   id: string;
 //   [key: string]: any;

@@ -6,6 +6,14 @@ import { EntryDb } from '../../extension/db/EntryDb';
 import { OeuvreDb } from '../../extension/db/OeuvreDb';
 import { ExempleDb } from '../../extension/db/ExempleDb';
 
+interface RawExemple {
+    oeuvre_id: string;
+    indice: number;
+    entry_id:string;
+    content:string;
+    notes:string;
+
+}
 export class TestData {
     
     // Test Entries (ordered to respect foreign key constraints)
@@ -373,7 +381,7 @@ export class TestData {
     ];
 
     // Test Exemples (avec cas limites pour tester l'affichage groupé)
-    static readonly EXEMPLES: IExemple[] = [
+    static readonly EXEMPLES: RawExemple[] = [
         // PULP94 - 3 exemples avec indices non continus (2, 4, 7)
         {
             oeuvre_id: 'PULP94',
@@ -714,7 +722,7 @@ export class TestData {
 
         // Insert exemples
         for (const exempleData of this.EXEMPLES) {
-            const exemple = new Exemple(exempleData);
+            const exemple = new Exemple(exempleData as IExemple);
             await exempleDb.create(exemple);
         }
     }
@@ -741,7 +749,7 @@ export class TestData {
         return this.OEUVRES.find(oeuvre => oeuvre.id === id);
     }
 
-    static getTestExemplesForOeuvre(oeuvreId: string): IExemple[] {
+    static getTestExemplesForOeuvre(oeuvreId: string): RawExemple[] {
         return this.EXEMPLES.filter(exemple => exemple.oeuvre_id === oeuvreId);
     }
 }

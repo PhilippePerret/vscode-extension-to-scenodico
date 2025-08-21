@@ -2,10 +2,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Exemple = void 0;
 const UExemple_1 = require("../../bothside/UExemple");
+const UniversalCacheManager_1 = require("../../bothside/UniversalCacheManager");
 // La donnée telle qu'elle sera en cache
 class Exemple extends UExemple_1.UExemple {
     static panelId = 'exemples';
-    id; // Computed composite key
+    static get cache() { return this._cacheManagerInstance; }
+    static _cacheManagerInstance = new UniversalCacheManager_1.UniversalCacheManager();
     static sortFonction(a, b) {
         // First sort by oeuvre ID (oeuvre_id)
         const oeuvreComparison = a.oeuvre_id.localeCompare(b.oeuvre_id);
@@ -18,9 +20,12 @@ class Exemple extends UExemple_1.UExemple {
         super(data);
         this.id = `${this.oeuvre_id}-${this.indice}`;
     }
+    static prepareItemsForCache(items) {
+        this.cache.inject(items, this.prepareItemForCache.bind(this));
+    }
     static prepareItemForCache(item) {
-        const cachedItem = new Exemple(item);
-        return cachedItem;
+        const preparedItem = item;
+        return preparedItem;
     }
     /**
      * Convert to database row

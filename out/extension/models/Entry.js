@@ -2,12 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Entry = void 0;
 const UEntry_1 = require("../../bothside/UEntry");
+const UniversalCacheManager_1 = require("../../bothside/UniversalCacheManager");
 const EntryDb_1 = require("../db/EntryDb");
-const CacheManager_1 = require("../services/cache/CacheManager");
 // Classe de la donnée mise en cache
 class Entry extends UEntry_1.UEntry {
     static panelId = 'entries';
-    static _cacheManagerInstance = new CacheManager_1.CacheManager();
+    static get cache() { return this._cacheManagerInstance; }
+    static _cacheManagerInstance = new UniversalCacheManager_1.UniversalCacheManager();
     static MESSAGES = {
         'loading-message': "Chargement des entrées du dictionnaire…",
     };
@@ -22,14 +23,18 @@ class Entry extends UEntry_1.UEntry {
         super(data);
     }
     /**
+     * Méthode pour préparation tous les items pour le cache
+     */
+    static prepareItemsForCache(items) {
+        this.cache.inject(items, this.prepareItemForCache.bind(this));
+        console.info("Cache après injection", this.cache);
+    }
+    /**
      * Méthode de préparation de la donnée pour le cache
-     *
-     * @param item  {IEntry} Donnée telle qu'elle est relevée dans la
-     *              base de données.
      */
     static prepareItemForCache(item) {
-        const cachedItem = new Entry(item);
-        return cachedItem;
+        const preparedItem = item;
+        return preparedItem;
     }
     /**
      * DB class for entries

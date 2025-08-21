@@ -85,24 +85,25 @@ class App {
         const { OeuvreDb } = require('../db/OeuvreDb');
         const { ExempleDb } = require('../db/ExempleDb');
         Promise.all([
-            this.loadAndCacheDataFor(EntryDb, Entry_1.Entry.sortFonction.bind(Entry_1.Entry)),
-            this.loadAndCacheDataFor(OeuvreDb, Oeuvre_1.Oeuvre.sortFonction.bind(Oeuvre_1.Oeuvre)),
-            this.loadAndCacheDataFor(ExempleDb, Exemple_1.Exemple.sortFonction.bind(Exemple_1.Exemple))
+            this.loadAndCacheDataFor(EntryDb, Entry_1.Entry),
+            this.loadAndCacheDataFor(OeuvreDb, Oeuvre_1.Oeuvre),
+            this.loadAndCacheDataFor(ExempleDb, Exemple_1.Exemple)
         ]);
         await this.waitUntilReady(3);
         console.info("[EXTENSION] Fin de mise en cache de toutes les données");
     }
-    static async loadAndCacheDataFor(Db, sortFn) {
+    static async loadAndCacheDataFor(Db, classI) {
         const context = this._context;
         const isTest = process.env.NODE_ENV === 'test' || context.extensionMode === vscode.ExtensionMode.Test;
         const dbService = DatabaseService_1.DatabaseService.getInstance(context, isTest);
         dbService.initialize();
-        console.log("Db", Db);
         const db = new Db(dbService);
-        const rawItems = await db.getAll();
-        const sortedItems = rawItems.sort(sortFn.bind(this));
-        // TODO Mettre les données en cache
-        console.warn("Apprendre à mettre les données suivantes en cache", sortedItems);
+        const rawData = await db.getAll();
+        const sortedItems = rawData.sort(classI.sortFonction.bind(classI));
+        classI.prepareItemsForCache.call(classI, sortedItems);
+        // TODO Apprendre à classer les items et comment les conserver 
+        // classés ? Le sont-il dans une Map ?
+        // classI.sortFonction.bind(classI)
         this.incAndCheckReadyCounter();
         return true;
     }

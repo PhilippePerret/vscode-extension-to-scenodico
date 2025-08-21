@@ -10,6 +10,9 @@ exports.UniversalDicoElement = void 0;
  *
  */
 class UniversalDicoElement {
+    static prepareItemsForCache(items) {
+        console.info("[EXTENSION] Pas de préparation au cache spéciale pour %s", this.name);
+    }
     // Le constructeur reçoit toujours un objet contenant
     // Les données. Dans un cas (extension) ce sont les données
     // provenant de la base de données, dans l'autre cas (webview)

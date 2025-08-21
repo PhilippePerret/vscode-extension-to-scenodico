@@ -1,8 +1,9 @@
 import { UEntry } from '../../bothside/UEntry';
+import { UniversalCacheManager } from '../../bothside/UniversalCacheManager';
 import { EntryDb } from '../db/EntryDb';
-import { CacheManager, CacheableItem } from '../services/cache/CacheManager';
 
-// Forme de la donnée persistante
+// Forme de la donnée persistante (en tout cas celle
+// qui sera envoyée au cache)
 export interface IEntry {
 	id: string;
 	entree: string;
@@ -11,11 +12,21 @@ export interface IEntry {
 	definition: string;
 }
 
+// La donnée cachée, complète
+interface FullEntry extends IEntry {
+  entree_min: string;              // Version minuscules pour recherche
+  entree_min_ra: string;           // Version rationalisée (sans accents) 
+  categorie_formated?: string;     // Nom de la catégorie (résolu via Entry.get())
+  genre_formated?: string;
+
+}
+
 // Classe de la donnée mise en cache
 export class Entry extends UEntry {
 	public static panelId: string = 'entries';
-	[key: string]: any;
-	private static _cacheManagerInstance: CacheManager<IEntry, Entry> = new CacheManager();
+
+	private static get cache(){ return this._cacheManagerInstance;}
+	private static _cacheManagerInstance: UniversalCacheManager<IEntry, FullEntry> = new UniversalCacheManager();
 
 	public static MESSAGES = {
 		'loading-message': "Chargement des entrées du dictionnaire…",
@@ -34,14 +45,18 @@ export class Entry extends UEntry {
 	}
 
 	/**
-	 * Méthode de préparation de la donnée pour le cache
-	 * 
-	 * @param item  {IEntry} Donnée telle qu'elle est relevée dans la
-	 *              base de données.
+	 * Méthode pour préparation tous les items pour le cache
 	 */
-	static prepareItemForCache(item: IEntry): Entry {
-		const cachedItem = new Entry(item);
-		return cachedItem;
+	public static prepareItemsForCache(items: IEntry[]): void {
+		this.cache.inject(items, this.prepareItemForCache.bind(this));
+		console.info("Cache après injection", this.cache);
+	}
+	/**
+	 * Méthode de préparation de la donnée pour le cache
+	 */
+	private static prepareItemForCache(item: IEntry): FullEntry {
+		const preparedItem = item as FullEntry;
+		return preparedItem;
 	}
 
 	/**
@@ -91,7 +106,7 @@ export class Entry extends UEntry {
 	/**
 	 * Sort function for entries (by entree, respecting accents/diacritics)
 	 */
-	static sortFunction(a: Entry, b: Entry): number {
+	static sortFunction(a:any, b:{[k:string]:any}): number {
 		return a.entree.localeCompare(b.entree, 'fr', {
 			sensitivity: 'base',
 			numeric: true,

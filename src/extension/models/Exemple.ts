@@ -1,20 +1,30 @@
 import { UExemple } from '../../bothside/UExemple';
-import { CacheableItem } from '../services/cache/CacheManager';
+import { UniversalCacheManager } from '../../bothside/UniversalCacheManager';
 
 // La donnée persistante
 export interface IExemple {
+	id: string;
 	oeuvre_id: string;
 	indice: number;
 	entry_id: string;
 	content: string;
 	notes?: string;
 }
+ 
+interface FullExemple extends IExemple {
+  content_min: string;             // Version minuscules pour recherche
+  content_min_ra: string;          // Version rationalisée (sans accents)
+  oeuvre_titre?: string;           // Titre de l'oeuvre (résolu via Oeuvre.get())
+	entree_formated: string;
+	oeuvre_formated: string; 
+}
 
 // La donnée telle qu'elle sera en cache
 export class Exemple extends UExemple {
 	public static panelId = 'exemples';
-	[key:string]:any;
-	public id: string; // Computed composite key
+	private static get cache(){ return this._cacheManagerInstance;}
+	private static _cacheManagerInstance: UniversalCacheManager<IExemple, FullExemple> = new UniversalCacheManager();
+
 
 	public static sortFonction(a: Exemple, b: Exemple): number {
     // First sort by oeuvre ID (oeuvre_id)
@@ -30,9 +40,12 @@ export class Exemple extends UExemple {
 		this.id = `${this.oeuvre_id}-${this.indice}`;
 	}
 
-	static prepareItemForCache(item: IExemple): CacheableItem {
-		const cachedItem = new Exemple(item);
-		return cachedItem as CacheableItem;
+	public static prepareItemsForCache(items: IExemple[]): void {
+		this.cache.inject(items, this.prepareItemForCache.bind(this));
+	}
+	private static prepareItemForCache(item: IExemple): FullExemple {
+		const preparedItem = item as FullExemple;
+		return preparedItem;
 	}
 
 	/**
@@ -59,7 +72,7 @@ export class Exemple extends UExemple {
 	/**
 	 * Sort function for exemples (by oeuvre_id then by indice)
 	 */
-	static sortFunction(a: Exemple, b: Exemple): number {
+	static sortFunction(a:any, b:any): number {
 		// First sort by oeuvre ID (oeuvre_id)
 		const oeuvreComparison = a.oeuvre_id.localeCompare(b.oeuvre_id);
 		if (oeuvreComparison !== 0) { return oeuvreComparison; }
