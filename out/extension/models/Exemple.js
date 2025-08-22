@@ -21,6 +21,7 @@ class Exemple extends UExemple_1.UExemple {
         this.id = `${this.oeuvre_id}-${this.indice}`;
     }
     static prepareItemsForCache(items) {
+        console.log("Élément Exemples à injecter dans le cache", items);
         this.cache.inject(items, this.prepareItemForCache.bind(this));
     }
     static prepareItemForCache(item) {

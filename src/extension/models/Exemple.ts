@@ -41,6 +41,7 @@ export class Exemple extends UExemple {
 	}
 
 	public static prepareItemsForCache(items: IExemple[]): void {
+		console.log("Élément Exemples à injecter dans le cache", items);
 		this.cache.inject(items, this.prepareItemForCache.bind(this));
 	}
 	private static prepareItemForCache(item: IExemple): FullExemple {

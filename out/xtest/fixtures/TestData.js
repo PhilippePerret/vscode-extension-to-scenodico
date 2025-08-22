@@ -260,6 +260,20 @@ class TestData {
             genre: 'nf',
             categorie_id: 'flashback',
             definition: 'Structure narrative où l\'ensemble du récit est présenté comme un retour en arrière.'
+        },
+        {
+            id: 'ca',
+            entree: 'Ça',
+            genre: 'nm',
+            categorie_id: 'personnage',
+            definition: 'Voir en philosophie ce que ça représente.'
+        },
+        {
+            id: 'ecriture',
+            entree: 'Écriture',
+            genre: 'nf',
+            categorie_id: '',
+            definition: 'Domaine dans lequel on se sert de l’écrit pour produire des livres et également son résultat.'
         }
     ];
     // Test Oeuvres

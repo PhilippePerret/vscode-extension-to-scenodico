@@ -26,6 +26,7 @@ class Entry extends UEntry_1.UEntry {
      * Méthode pour préparation tous les items pour le cache
      */
     static prepareItemsForCache(items) {
+        console.log("Éléments Entrées à injecter dans le cache", items);
         this.cache.inject(items, this.prepareItemForCache.bind(this));
         console.info("Cache après injection", this.cache);
     }

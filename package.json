@@ -43,7 +43,8 @@
     "test": "vscode-test",
     "clean": "rm -rf out/ media/*-bundle.js media/*-bundle.js.map",
     "rebuild": "npm run clean && npm run compile",
-    "dev": "npm run compile && concurrently \"npm run watch:extension\" \"npm run watch:webviews\""
+    "dev": "npm run compile && concurrently \"npm run watch:extension\" \"npm run watch:webviews\"",
+    "update-db": "node ./scripts/update-db.mjs"
   },
   "concurrently": "^7.6.0",
   "scripts_notes": {

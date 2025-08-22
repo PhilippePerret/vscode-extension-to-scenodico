@@ -52,7 +52,7 @@ class DatabaseService {
         }
         // Ensure directory exists
         const dir = path.dirname(this.dbPath);
-        if (!fs.existsSync(dir)) {
+        if (false === fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
     }
@@ -64,6 +64,15 @@ class DatabaseService {
             DatabaseService.instance = new DatabaseService(context, isTest);
         }
         return DatabaseService.instance;
+    }
+    /**
+     * Reset singleton instance (for testing and forced reloading)
+     */
+    static async reset() {
+        if (DatabaseService.instance) {
+            await DatabaseService.instance.close();
+        }
+        DatabaseService.instance = null;
     }
     /**
      * Initialize database connection and create tables
