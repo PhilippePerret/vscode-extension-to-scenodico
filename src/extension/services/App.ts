@@ -74,6 +74,11 @@ export class App {
     ]);
     await this.waitUntilReady();
     console.info("[EXTENSION] Fin de préparation des données caches.");
+
+    // Pour voir les données ici
+    console.info("Données Entrée formatées", Entry.cacheDebug().getAll());
+    console.info("Données Oeuvres formatées", Oeuvre.cacheDebug().getAll());
+    console.info("Données Exemples formatées", Exemple.cacheDebug().getAll());
   }
 
   private static async loadAndCacheDataFor(

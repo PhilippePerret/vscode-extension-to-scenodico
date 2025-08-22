@@ -13,7 +13,7 @@ export interface IOeuvre {
 	resume?: string;
 }
 
-interface FullOeuvre extends IOeuvre {
+export interface FullOeuvre extends IOeuvre {
   resume_formated?: string;
   titre_original?: string;
   titre_francais?: string;
@@ -27,9 +27,10 @@ interface FullOeuvre extends IOeuvre {
 export class Oeuvre extends UOeuvre {
 	public static panelId = 'oeuvres';
 
+	public static cacheDebug() { return this.cache; }
 	private static get cache(){ return this._cacheManagerInstance;}
 	private static _cacheManagerInstance: UniversalCacheManager<IOeuvre, FullOeuvre> = new UniversalCacheManager();
-
+	public static get(oeuvre_id: string): FullOeuvre { return this.cache.get(oeuvre_id) as FullOeuvre ;}
 
 	public static sortFonction(a: Oeuvre, b: Oeuvre): number {
 		const titleA = a.titre_original || a.titre_affiche;
@@ -60,13 +61,13 @@ export class Oeuvre extends UOeuvre {
 	}
 
 	public static async finalizeCachedItems(): Promise<void> {
-		console.log("Finalisation des données cache de ", this.name);
 		await this.cache.traverse(this.finalizeCachedItem.bind(this));
 		App.incAndCheckReadyCounter();
 	}
 	private static finalizeCachedItem(item: FullOeuvre): FullOeuvre {
 		return Object.assign(item, {
-
+			titre_affiche_formated: item.titre_affiche,
+			auteurs_formated: item.auteurs && Oeuvre.mef_auteurs(item.auteurs) 
 		});
 	}
 

@@ -1,3 +1,4 @@
+import { AnyElementClass } from "../extension/models/AnyElement";
 import { TypeUnionElement } from "./UnversalConstants";
 
 // Les données brutes telles qu'elles sont relevées dans la base

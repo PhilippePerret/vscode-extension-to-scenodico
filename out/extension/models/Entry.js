@@ -8,8 +8,10 @@ const CacheTypes_1 = require("../services/cache/CacheTypes");
 // Classe de la donnée mise en cache
 class Entry extends UEntry_1.UEntry {
     static panelId = 'entries';
+    static cacheDebug() { return this.cache; }
     static get cache() { return this._cacheManagerInstance; }
     static _cacheManagerInstance = new UniversalCacheManager_1.UniversalCacheManager();
+    static get(entry_id) { return this.cache.get(entry_id); }
     static MESSAGES = {
         'loading-message': "Chargement des entrées du dictionnaire…",
     };
@@ -48,7 +50,6 @@ class Entry extends UEntry_1.UEntry {
         return pItem;
     }
     static async finalizeCachedItems() {
-        console.log("Finalisation des données cache de ", this.name);
         await this.cache.traverse(this.finalizeCachedItem.bind(this));
         App_1.App.incAndCheckReadyCounter();
     }

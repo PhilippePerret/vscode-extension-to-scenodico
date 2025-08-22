@@ -104,6 +104,10 @@ class App {
         ]);
         await this.waitUntilReady();
         console.info("[EXTENSION] Fin de préparation des données caches.");
+        // Pour voir les données ici
+        console.info("Données Entrée formatées", Entry_1.Entry.cacheDebug().getAll());
+        console.info("Données Oeuvres formatées", Oeuvre_1.Oeuvre.cacheDebug().getAll());
+        console.info("Données Exemples formatées", Exemple_1.Exemple.cacheDebug().getAll());
     }
     static async loadAndCacheDataFor(Db, classI) {
         const context = this._context;

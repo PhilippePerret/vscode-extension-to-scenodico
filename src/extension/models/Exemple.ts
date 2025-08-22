@@ -1,6 +1,8 @@
 import { UExemple } from '../../bothside/UExemple';
 import { UniversalCacheManager } from '../../bothside/UniversalCacheManager';
 import { App } from '../services/App';
+import { Entry, FullEntry } from './Entry';
+import { Oeuvre, FullOeuvre } from './Oeuvre';
 
 // La donnée persistante
 export interface IExemple {
@@ -13,9 +15,10 @@ export interface IExemple {
 }
  
 interface FullExemple extends IExemple {
+	content_formated: string;
   content_min: string;             // Version minuscules pour recherche
   content_min_ra: string;          // Version rationalisée (sans accents)
-  oeuvre_titre?: string;           // Titre de l'oeuvre (résolu via Oeuvre.get())
+  oeuvre_titre: string;            // Titre de l'oeuvre
 	entree_formated: string;
 	oeuvre_formated: string; 
 }
@@ -23,6 +26,8 @@ interface FullExemple extends IExemple {
 // La donnée telle qu'elle sera en cache
 export class Exemple extends UExemple {
 	public static panelId = 'exemples';
+
+	public static cacheDebug() { return this.cache; }
 	private static get cache(){ return this._cacheManagerInstance;}
 	private static _cacheManagerInstance: UniversalCacheManager<IExemple, FullExemple> = new UniversalCacheManager();
 
@@ -50,13 +55,23 @@ export class Exemple extends UExemple {
 	}
 
 	public static async finalizeCachedItems(): Promise<void> {
-		console.log("Finalisation des données cache de ", this.name);
 		await this.cache.traverse(this.finalizeCachedItem.bind(this));
 		App.incAndCheckReadyCounter();
 	}
 	private static finalizeCachedItem(item: FullExemple): FullExemple {
+		const entree = Entry.get(item.entry_id).entree_min;
+		const titre_oeuvre = Oeuvre.get(item.oeuvre_id).titre_affiche;
+		// On remplace 'TITRE' dans le texte de l'exemple
+		let content_formated: string;
+		if (item.content.match(/TITRE/) ){
+			content_formated = item.content.replace(/TITRE/g, titre_oeuvre);
+		} else {
+			content_formated = `dans ${titre_oeuvre}, ${item.content}`;
+		} 
 		return Object.assign(item, {
-
+			oeuvre_titre: titre_oeuvre,
+			entree_formated: entree,
+			content_formated: content_formated 
 		});
 	}
 

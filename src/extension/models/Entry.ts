@@ -15,7 +15,7 @@ export interface IEntry {
 }
 
 // La donnée cachée, complète
-interface FullEntry extends IEntry {
+export interface FullEntry extends IEntry {
   entree_min: string;              // Version minuscules pour recherche
   entree_min_ra: string;           // Version rationalisée (sans accents) 
   categorie_formated?: string;     // Nom de la catégorie (résolu via Entry.get())
@@ -27,8 +27,10 @@ interface FullEntry extends IEntry {
 export class Entry extends UEntry {
 	public static panelId: string = 'entries';
 
+	public static cacheDebug() { return this.cache; }
 	private static get cache(){ return this._cacheManagerInstance;}
 	private static _cacheManagerInstance: UniversalCacheManager<IEntry, FullEntry> = new UniversalCacheManager();
+	public static get(entry_id: string): FullEntry { return this.cache.get(entry_id) as FullEntry;}
 
 	public static MESSAGES = {
 		'loading-message': "Chargement des entrées du dictionnaire…",
@@ -73,7 +75,6 @@ export class Entry extends UEntry {
 	}
 	
 	public static async finalizeCachedItems(): Promise<void> {
-		console.log("Finalisation des données cache de ", this.name);
 		await this.cache.traverse(this.finalizeCachedItem.bind(this));
 		App.incAndCheckReadyCounter();
 	}
@@ -85,7 +86,6 @@ export class Entry extends UEntry {
 		}
 		item = Object.assign(item, {
 			categorie_format: cat || '',
-
 		});
 	
 		return item;

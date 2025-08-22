@@ -18,6 +18,21 @@
 
   // src/bothside/UOeuvre.ts
   var UOeuvre = class extends UniversalDicoElement {
+    // Mettre en forme les auteurs
+    static mef_auteurs(auteurs) {
+      const regauteurs = /(.+?) ([A-Z \-]+?)\(([HF]), (.+?)\)/;
+      while (auteurs.match(regauteurs)) {
+        auteurs = auteurs.replace(regauteurs, (_, prenom, nom, sexe, fonctions) => {
+          return `
+        <span class="prenom">${prenom}</span>
+        <span class="nom">${nom}</span>
+        <span class="sexe">${sexe}</span>
+        (<span class="fonctions">${fonctions}</span>)
+        `;
+        });
+      }
+      return auteurs.trim();
+    }
     constructor(data) {
       super(data);
     }
@@ -41,7 +56,7 @@
     //   switch(prop) {
     //     case 'annee':
     //       return value ? value.toString() : '';
-    //     default: 
+    //     default:
     //       return value || '';
     //   }
     // }
@@ -99,21 +114,6 @@
     //   // Pour le moment, le résumé reste le même, mais ensuite il sera
     //   // possible de le faire en markdown
     //   item.resume_formated = item.resume;
-    //   // Mettre en forme les auteurs
-    //   const regauteurs = /(.+?) ([A-Z \-]+?)\(([HF]), (.+?)\)/ ;
-    //   let auteurs = item.auteurs;
-    //   while (auteurs.match(regauteurs)) {
-    //     auteurs = auteurs.replace(regauteurs, (_: string, prenom: string, nom: string, sexe: string, fonctions: string): string => {
-    //       return `
-    //       <span class="prenom">${prenom}</span>
-    //       <span class="nom">${nom}</span>
-    //       <span class="sexe">${sexe}</span>
-    //       (<span class="fonctions">${fonctions}</span>)
-    //       `;
-    //     });
-    //   }
-    //   item.auteurs_formated = auteurs.trim() ; 
-    // }
     // /**
     //  * Recherche d'œuvres par titre (optimisée)
     //  * Méthode spécifique Oeuvre

@@ -5,16 +5,16 @@ export class Oeuvre extends UOeuvre {
   static readonly minName = 'oeuvre';
 
   // private static readonly REG_ARTICLES = /\b(an|a|the|le|la|les|l'|de|du)\b/i ;
-  
+
   // // Cache manager spécifique aux oeuvres
   // private static _cacheManagerInstance: CacheManager<OeuvreData, CachedOeuvreData> = new CacheManager();
-  
+
   // protected static get cacheManager(): CacheManager<OeuvreData, CachedOeuvreData> {
   //   return this._cacheManagerInstance;
   // }
   // // pour test
   // static get cacheManagerForced() { return this.cacheManager ; }
-  
+
   // static readonly ERRORS = {
   //   'no-items': 'Aucune œuvre dans la base, bizarrement…',
   // };
@@ -23,7 +23,7 @@ export class Oeuvre extends UOeuvre {
   //   switch(prop) {
   //     case 'annee':
   //       return value ? value.toString() : '';
-  //     default: 
+  //     default:
   //       return value || '';
   //   }
   // }
@@ -45,7 +45,7 @@ export class Oeuvre extends UOeuvre {
   //   if (oeuvre.titre_affiche) {
   //     titres.push(StringNormalizer.rationalize(oeuvre.titre_affiche));
   //   }
-  
+
   //   // Il faut supprimer les articles dans les titres
   //   titres.forEach(titre => {
   //     if ( titre.match(this.REG_ARTICLES)) {
@@ -62,7 +62,7 @@ export class Oeuvre extends UOeuvre {
   //   // Versions minuscules pour recherche
   //   const titresLookUp = uniqTitres.map(titre => StringNormalizer.toLower(titre));
   //   // console.info("titres min", titresLookUp);
-    
+
   //   return {
   //     id: oeuvre.id,
   //     titre_affiche: oeuvre.titre_affiche,
@@ -90,21 +90,6 @@ export class Oeuvre extends UOeuvre {
   //   // possible de le faire en markdown
   //   item.resume_formated = item.resume;
 
-  //   // Mettre en forme les auteurs
-  //   const regauteurs = /(.+?) ([A-Z \-]+?)\(([HF]), (.+?)\)/ ;
-  //   let auteurs = item.auteurs;
-  //   while (auteurs.match(regauteurs)) {
-  //     auteurs = auteurs.replace(regauteurs, (_: string, prenom: string, nom: string, sexe: string, fonctions: string): string => {
-  //       return `
-  //       <span class="prenom">${prenom}</span>
-  //       <span class="nom">${nom}</span>
-  //       <span class="sexe">${sexe}</span>
-  //       (<span class="fonctions">${fonctions}</span>)
-  //       `;
-  //     });
-  //   }
-  //   item.auteurs_formated = auteurs.trim() ; 
-  // }
 
   // /**
   //  * Recherche d'œuvres par titre (optimisée)

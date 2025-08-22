@@ -6,8 +6,10 @@ const UOeuvre_1 = require("../../bothside/UOeuvre");
 const App_1 = require("../services/App");
 class Oeuvre extends UOeuvre_1.UOeuvre {
     static panelId = 'oeuvres';
+    static cacheDebug() { return this.cache; }
     static get cache() { return this._cacheManagerInstance; }
     static _cacheManagerInstance = new UniversalCacheManager_1.UniversalCacheManager();
+    static get(oeuvre_id) { return this.cache.get(oeuvre_id); }
     static sortFonction(a, b) {
         const titleA = a.titre_original || a.titre_affiche;
         const titleB = b.titre_original || b.titre_affiche;
@@ -36,12 +38,14 @@ class Oeuvre extends UOeuvre_1.UOeuvre {
         return preparedItem;
     }
     static async finalizeCachedItems() {
-        console.log("Finalisation des données cache de ", this.name);
         await this.cache.traverse(this.finalizeCachedItem.bind(this));
         App_1.App.incAndCheckReadyCounter();
     }
     static finalizeCachedItem(item) {
-        return Object.assign(item, {});
+        return Object.assign(item, {
+            titre_affiche_formated: item.titre_affiche,
+            auteurs_formated: item.auteurs && Oeuvre.mef_auteurs(item.auteurs)
+        });
     }
     /**
      * Get the title to use for sorting (French if exists, otherwise original)
