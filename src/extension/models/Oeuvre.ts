@@ -47,13 +47,14 @@ export class Oeuvre extends UOeuvre {
 	 */
 	public static prepareItemsForCache(items: IOeuvre[]): void {
 		this.cache.inject(items, this.prepareItemForCache.bind(this));
-		console.info("Cache après injection", this.cache);
+		console.info("Cache après injection", this.cache.getAll());
 	}
 	/**
 	 * Méthode de préparation de la donnée pour le cache
 	 */
 	private static prepareItemForCache(item: IOeuvre): FullOeuvre {
 		const preparedItem = item as FullOeuvre;
+		preparedItem.titres = ["Un titre", "un autre titre", "et encore un"];
 		return preparedItem;
 	}
 

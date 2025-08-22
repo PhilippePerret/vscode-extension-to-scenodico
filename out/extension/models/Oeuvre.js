@@ -24,13 +24,14 @@ class Oeuvre extends UOeuvre_1.UOeuvre {
      */
     static prepareItemsForCache(items) {
         this.cache.inject(items, this.prepareItemForCache.bind(this));
-        console.info("Cache après injection", this.cache);
+        console.info("Cache après injection", this.cache.getAll());
     }
     /**
      * Méthode de préparation de la donnée pour le cache
      */
     static prepareItemForCache(item) {
         const preparedItem = item;
+        preparedItem.titres = ["Un titre", "un autre titre", "et encore un"];
         return preparedItem;
     }
     /**

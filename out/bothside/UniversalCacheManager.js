@@ -15,11 +15,15 @@ class UniversalCacheManager {
     _prepared = false;
     clear() { this._cache.clear(); this._built = false; this._prepared = false; }
     inject(data, fnTrans) {
+        console.log("-> inject() avec les données", data);
         this.clear();
         data.forEach((item) => {
             const fullItem = fnTrans(item);
+            console.log("+ ajout de ", fullItem);
             this._cache.set(fullItem.id, fullItem);
         });
+        this._prepared = true;
+        this._built = true;
     }
     has(id) { return this._cache.has(id); }
     get(id) { return this._cache.get(id); }

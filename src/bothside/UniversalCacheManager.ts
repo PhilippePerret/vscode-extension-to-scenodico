@@ -25,11 +25,15 @@ export class UniversalCacheManager<Tin extends InputItem, Tfull extends FullCach
     data: Tin[],
     fnTrans: (item: Tin) => Tfull
   ) : void {
+    console.log("-> inject() avec les données", data);
     this.clear();
     data.forEach((item: Tin ) => { 
       const fullItem = fnTrans(item);
+      console.log("+ ajout de ", fullItem);
       this._cache.set(fullItem.id, fullItem);
     });
+    this._prepared = true;
+    this._built = true;
   }
   has(id: string): boolean { return this._cache.has(id); }
   get(id: string): Tfull | undefined { return this._cache.get(id); }
