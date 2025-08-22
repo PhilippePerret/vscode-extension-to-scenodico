@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Oeuvre = void 0;
 const UniversalCacheManager_1 = require("../../bothside/UniversalCacheManager");
 const UOeuvre_1 = require("../../bothside/UOeuvre");
+const App_1 = require("../services/App");
 class Oeuvre extends UOeuvre_1.UOeuvre {
     static panelId = 'oeuvres';
     static get cache() { return this._cacheManagerInstance; }
@@ -22,7 +23,7 @@ class Oeuvre extends UOeuvre_1.UOeuvre {
     /**
      * Méthode pour préparation tous les items pour le cache
      */
-    static prepareItemsForCache(items) {
+    static cacheAllData(items) {
         this.cache.inject(items, this.prepareItemForCache.bind(this));
         console.info("Cache après injection", this.cache.getAll());
     }
@@ -33,6 +34,14 @@ class Oeuvre extends UOeuvre_1.UOeuvre {
         const preparedItem = item;
         preparedItem.titres = ["Un titre", "un autre titre", "et encore un"];
         return preparedItem;
+    }
+    static async finalizeCachedItems() {
+        console.log("Finalisation des données cache de ", this.name);
+        await this.cache.traverse(this.finalizeCachedItem.bind(this));
+        App_1.App.incAndCheckReadyCounter();
+    }
+    static finalizeCachedItem(item) {
+        return Object.assign(item, {});
     }
     /**
      * Get the title to use for sorting (French if exists, otherwise original)

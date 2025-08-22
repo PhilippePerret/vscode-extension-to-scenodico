@@ -16,6 +16,8 @@ export class UEntry extends UniversalDicoElement {
     'adv': 'adv.'
   };
 
+  static genre(id:string):string { return this.GENRES[id as keyof typeof this.GENRES];}
+
   constructor(data: {[key: string]: any}){
     super(data);
     // TODO D'autres traitement ici propres à l'élément, sinon le

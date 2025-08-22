@@ -1,5 +1,6 @@
 import { UExemple } from '../../bothside/UExemple';
 import { UniversalCacheManager } from '../../bothside/UniversalCacheManager';
+import { App } from '../services/App';
 
 // La donnée persistante
 export interface IExemple {
@@ -40,13 +41,23 @@ export class Exemple extends UExemple {
 		this.id = `${this.oeuvre_id}-${this.indice}`;
 	}
 
-	public static prepareItemsForCache(items: IExemple[]): void {
-		console.log("Élément Exemples à injecter dans le cache", items);
+	public static cacheAllData(items: IExemple[]): void {
 		this.cache.inject(items, this.prepareItemForCache.bind(this));
 	}
 	private static prepareItemForCache(item: IExemple): FullExemple {
 		const preparedItem = item as FullExemple;
 		return preparedItem;
+	}
+
+	public static async finalizeCachedItems(): Promise<void> {
+		console.log("Finalisation des données cache de ", this.name);
+		await this.cache.traverse(this.finalizeCachedItem.bind(this));
+		App.incAndCheckReadyCounter();
+	}
+	private static finalizeCachedItem(item: FullExemple): FullExemple {
+		return Object.assign(item, {
+
+		});
 	}
 
 	/**

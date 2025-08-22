@@ -14,19 +14,9 @@ class UniversalCacheManager {
     _built = false;
     _prepared = false;
     clear() { this._cache.clear(); this._built = false; this._prepared = false; }
-    inject(data, fnTrans) {
-        console.log("-> inject() avec les données", data);
-        this.clear();
-        data.forEach((item) => {
-            const fullItem = fnTrans(item);
-            console.log("+ ajout de ", fullItem);
-            this._cache.set(fullItem.id, fullItem);
-        });
-        this._prepared = true;
-        this._built = true;
-    }
     has(id) { return this._cache.has(id); }
     get(id) { return this._cache.get(id); }
+    update(id, item) { this._cache.set(id, item); }
     getAll() { return Array.from(this._cache.values()); }
     get size() { return this._cache.size; }
     forEach(fn) { this._cache.forEach(item => fn(item)); }
@@ -36,6 +26,19 @@ class UniversalCacheManager {
             result.push(item);
         } ; });
         return result;
+    }
+    // Pour transformer TOUTES LES OCCURRENCES avec une fonction +fnTrans+
+    async traverse(fnTrans) {
+        this.forEach(item => this._cache.set(item.id, fnTrans(item)));
+    }
+    inject(data, fnTrans) {
+        this.clear();
+        data.forEach((item) => {
+            const fullItem = fnTrans(item);
+            this._cache.set(fullItem.id, fullItem);
+        });
+        this._prepared = true;
+        this._built = true;
     }
 }
 exports.UniversalCacheManager = UniversalCacheManager;

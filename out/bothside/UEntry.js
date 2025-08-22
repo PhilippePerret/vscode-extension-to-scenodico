@@ -15,6 +15,7 @@ class UEntry extends UniversalDicoElement_1.UniversalDicoElement {
         'adj': 'adj.',
         'adv': 'adv.'
     };
+    static genre(id) { return this.GENRES[id]; }
     constructor(data) {
         super(data);
         // TODO D'autres traitement ici propres à l'élément, sinon le

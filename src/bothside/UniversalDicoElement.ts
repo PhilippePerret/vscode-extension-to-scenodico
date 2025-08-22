@@ -24,10 +24,6 @@ export interface CachedItem {
 export abstract class UniversalDicoElement {
   [key: string]: any; // autorise `this[k]' dans le constructeur
 
-  public static prepareItemsForCache(items: any):void {
-    console.info("[EXTENSION] Pas de préparation au cache spéciale pour %s", this.name);
-  }
-
   // Le constructeur reçoit toujours un objet contenant
   // Les données. Dans un cas (extension) ce sont les données
   // provenant de la base de données, dans l'autre cas (webview)

@@ -1,11 +1,10 @@
-
 interface InputItem {
   id: string;
-  [k:string]:any
+  [k: string]: any
 }
 interface FullCachedItem extends InputItem {
   id: string;
-  [k:string]:any;
+  [k: string]: any;
 }
 
 /**
@@ -21,22 +20,9 @@ export class UniversalCacheManager<Tin extends InputItem, Tfull extends FullCach
   protected _built: boolean = false;
   protected _prepared: boolean = false;
   clear(): void { this._cache.clear(); this._built = false; this._prepared = false; }
-  inject(
-    data: Tin[],
-    fnTrans: (item: Tin) => Tfull
-  ) : void {
-    console.log("-> inject() avec les données", data);
-    this.clear();
-    data.forEach((item: Tin ) => { 
-      const fullItem = fnTrans(item);
-      console.log("+ ajout de ", fullItem);
-      this._cache.set(fullItem.id, fullItem);
-    });
-    this._prepared = true;
-    this._built = true;
-  }
   has(id: string): boolean { return this._cache.has(id); }
   get(id: string): Tfull | undefined { return this._cache.get(id); }
+  update(id: string, item: Tfull): void { this._cache.set(id, item); }
   getAll(): Tfull[] { return Array.from(this._cache.values()); }
   get size(): number { return this._cache.size; }
   forEach(fn: (item: Tfull) => void): void { this._cache.forEach(item => fn(item)); }
@@ -44,5 +30,21 @@ export class UniversalCacheManager<Tin extends InputItem, Tfull extends FullCach
     const result: Tfull[] = [];
     this.forEach(item => { if (filtre(item)) { result.push(item); }; });
     return result;
+  }
+  // Pour transformer TOUTES LES OCCURRENCES avec une fonction +fnTrans+
+  async traverse(fnTrans: (item: Tfull) => Tfull) {
+    this.forEach(item => this._cache.set(item.id, fnTrans(item)));
+  }
+  inject(
+    data: Tin[],
+    fnTrans: (item: Tin) => Tfull
+  ): void {
+    this.clear();
+    data.forEach((item: Tin) => {
+      const fullItem = fnTrans(item);
+      this._cache.set(fullItem.id, fullItem);
+    });
+    this._prepared = true;
+    this._built = true;
   }
 }

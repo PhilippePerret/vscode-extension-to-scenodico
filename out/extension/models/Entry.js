@@ -3,7 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Entry = void 0;
 const UEntry_1 = require("../../bothside/UEntry");
 const UniversalCacheManager_1 = require("../../bothside/UniversalCacheManager");
-const EntryDb_1 = require("../db/EntryDb");
+const App_1 = require("../services/App");
+const CacheTypes_1 = require("../services/cache/CacheTypes");
 // Classe de la donnée mise en cache
 class Entry extends UEntry_1.UEntry {
     static panelId = 'entries';
@@ -23,26 +24,51 @@ class Entry extends UEntry_1.UEntry {
         super(data);
     }
     /**
-     * Méthode pour préparation tous les items pour le cache
+     * Méthode pour mettre simplement les données en cache sans aucun
+     * traitement (parce que pour les traiter, il faut impérativement
+     * que toutes les données sont en cache).
      */
-    static prepareItemsForCache(items) {
-        console.log("Éléments Entrées à injecter dans le cache", items);
+    static cacheAllData(items) {
         this.cache.inject(items, this.prepareItemForCache.bind(this));
-        console.info("Cache %s après injection (%i éléments)", this.name, this.cache.size, this.cache.getAll());
     }
     /**
-     * Méthode de préparation de la donnée pour le cache
+     * Méthode de préparation de la donnée pour le cache. Cette méthode
+     * ne procède qu'aux préparations qui ne font pas appel aux autres
+     * données (voir la méthode finalizeCachedData pour ça).
      */
     static prepareItemForCache(item) {
-        const preparedItem = item;
-        return preparedItem;
+        const entreeNormalized = CacheTypes_1.StringNormalizer.toLower(item.entree);
+        const entreeRationalized = CacheTypes_1.StringNormalizer.rationalize(item.entree);
+        // On finalise la donnée en cache
+        const pItem = Object.assign(item, {
+            entree_min: entreeNormalized,
+            entree_min_ra: entreeRationalized,
+            genre_formated: this.genre(item.genre)
+        });
+        return pItem;
     }
-    /**
-     * DB class for entries
-     */
-    static get DbClass() {
-        return EntryDb_1.EntryDb;
+    static async finalizeCachedItems() {
+        console.log("Finalisation des données cache de ", this.name);
+        await this.cache.traverse(this.finalizeCachedItem.bind(this));
+        App_1.App.incAndCheckReadyCounter();
     }
+    static finalizeCachedItem(item) {
+        // Pour trouver la catégorie humaine
+        let cat;
+        if (item.categorie_id) {
+            cat = this.cache.get(item.categorie_id)?.entree_min;
+        }
+        item = Object.assign(item, {
+            categorie_format: cat || '',
+        });
+        return item;
+    }
+    // /**
+    //  * DB class for entries
+    //  */
+    // static get DbClass(): typeof EntryDb {
+    // 	return EntryDb;
+    // }
     /**
      * Generate unique ID from entry text (lowercase, no accents, only letters/numbers)
      *
@@ -76,16 +102,6 @@ class Entry extends UEntry_1.UEntry {
      */
     static fromRow(row) {
         return new Entry(row);
-    }
-    /**
-     * Sort function for entries (by entree, respecting accents/diacritics)
-     */
-    static sortFunction(a, b) {
-        return a.entree.localeCompare(b.entree, 'fr', {
-            sensitivity: 'base',
-            numeric: true,
-            caseFirst: 'lower'
-        });
     }
     /**
      * Post-processing after DOM elements are displayed

@@ -3,9 +3,6 @@
   // src/bothside/UniversalDicoElement.ts
   var UniversalDicoElement = class {
     // autorise `this[k]' dans le constructeur
-    static prepareItemsForCache(items) {
-      console.info("[EXTENSION] Pas de pr\xE9paration au cache sp\xE9ciale pour %s", this.name);
-    }
     // Le constructeur reçoit toujours un objet contenant
     // Les données. Dans un cas (extension) ce sont les données
     // provenant de la base de données, dans l'autre cas (webview)
@@ -534,6 +531,9 @@
       "adj": "adj.",
       "adv": "adv."
     };
+    static genre(id) {
+      return this.GENRES[id];
+    }
     constructor(data) {
       super(data);
     }
@@ -545,47 +545,6 @@
     // static readonly ERRORS = {
     //   'no-items': 'Aucune entrée dans la base, bizarrement…',
     // };
-    // /**
-    //  * Prépare une entrée pour le cache de recherche
-    //  * SEULE méthode spécifique - le reste hérite de CommonClassItem !
-    //  */
-    // static prepareItemForCache(entry: EntryData): CachedEntryData {
-    //   const entreeNormalized    = StringNormalizer.toLower(entry.entree);
-    //   const entreeRationalized  = StringNormalizer.rationalize(entry.entree);
-    //   return {
-    //     id: entry.id,
-    //     entree: entry.entree,
-    //     definition: undefined, // définition formatée
-    //     raw_definition: entry.definition,
-    //     entree_min: entreeNormalized,
-    //     entree_min_ra: entreeRationalized,
-    //     categorie_id: entry.categorie_id,
-    //     categorie: undefined,
-    //     genre: entry.genre,
-    //     genre_formated: undefined, // sera défini plus tard
-    //   };
-    // }
-    // /**
-    //  * Méthode qui, après chargement de toutes les données, finalise la
-    //  * donnée cache
-    //  * 
-    //  * @param item Entrée du dictionnaire
-    //  */
-    // static finalizeCachedItem(item: CacheableItem): void {
-    //   // Résoudre la catégorie (c'est possible maintenant que toutes les
-    //   // données sont connées) 
-    //   let categorie: string | undefined;
-    //   if (item.categorie_id) {
-    //     const categorieEntry = this.cacheManager.get(item.categorie_id);
-    //     categorie = categorieEntry ? (categorieEntry as CachedEntryData).entree : undefined;
-    //     item.categorie = categorie ; 
-    //   } else {
-    //     item.categorie = '-- hors catégorie --' ;
-    //   }
-    //   // Mise en forme de la définition
-    //   item.definition = item.raw_definition ; // TODO à mettre en forme
-    //   // Mise en forme du genre
-    //   item.genre_formated = this.GENRES[item.genre as keyof typeof this.GENRES] || `# genre ${item.genre} inconnu #`;
     // }
     // /**
     //  * Recherche d'entrées par préfixe (optimisée)
@@ -598,13 +557,6 @@
     //     return entry.entree_min.startsWith(prefixLower) || 
     //            entry.entree_min_ra.startsWith(prefixRa);
     //   }) as CachedEntryData[];
-    // }
-    // // Méthodes typées pour plus de confort (optionnel)
-    // static get(id: string): CachedEntryData | null {
-    //   return super.get(id) as CachedEntryData | null;
-    // }
-    // static getAll(): CachedEntryData[] {
-    //   return super.getAll() as CachedEntryData[];
     // }
   };
   window.Entry = Entry;

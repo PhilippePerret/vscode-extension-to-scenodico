@@ -33,14 +33,19 @@ export class App {
 	public static readyCounter = 0 ;
 	public static okWhenReady: Function;
 
-	private static async waitUntilReady(readyInitCounter: number) {
+  private static resetReadyCounter(value: number) { this.readyCounter = value ;}
+	private static async waitUntilReady(readyInitCounter?: number) {
 		return new Promise<void>((ok) => {
-			this.readyCounter = readyInitCounter;
+      if ( readyInitCounter ) {
+			  this.readyCounter = readyInitCounter;
+      }
+      // console.info("readyCounter mis à %i", this.readyCounter);
 			this.okWhenReady = ok;
 		});
 	}
 	public static incAndCheckReadyCounter(){
 		-- this.readyCounter;
+    console.info("readyCounter = %s", this.readyCounter);
     if (this.readyCounter <= 0) { this.okWhenReady(); }
 	}
 	
@@ -60,6 +65,15 @@ export class App {
     ]);
     await this.waitUntilReady(3);
 		console.info("[EXTENSION] Fin de mise en cache de toutes les données");
+
+    this.resetReadyCounter(3);
+    Promise.all([
+      Entry.finalizeCachedItems.call(Entry),
+      Oeuvre.finalizeCachedItems.call(Oeuvre),
+      Exemple.finalizeCachedItems.call(Exemple)
+    ]);
+    await this.waitUntilReady();
+    console.info("[EXTENSION] Fin de préparation des données caches.");
   }
 
   private static async loadAndCacheDataFor(
@@ -73,7 +87,7 @@ export class App {
     const db = new Db(dbService);
     const rawData = await db.getAll();
     const sortedItems = rawData.sort(classI.sortFonction.bind(classI)) ; 
-    classI.prepareItemsForCache.call(classI, sortedItems);
+    (classI as AnyElementClass).cacheAllData.call(classI, sortedItems);
     // TODO Apprendre à classer les items et comment les conserver 
     // classés ? Le sont-il dans une Map ?
     // classI.sortFonction.bind(classI)

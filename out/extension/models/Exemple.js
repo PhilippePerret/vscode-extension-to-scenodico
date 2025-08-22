@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Exemple = void 0;
 const UExemple_1 = require("../../bothside/UExemple");
 const UniversalCacheManager_1 = require("../../bothside/UniversalCacheManager");
+const App_1 = require("../services/App");
 // La donnée telle qu'elle sera en cache
 class Exemple extends UExemple_1.UExemple {
     static panelId = 'exemples';
@@ -20,13 +21,20 @@ class Exemple extends UExemple_1.UExemple {
         super(data);
         this.id = `${this.oeuvre_id}-${this.indice}`;
     }
-    static prepareItemsForCache(items) {
-        console.log("Élément Exemples à injecter dans le cache", items);
+    static cacheAllData(items) {
         this.cache.inject(items, this.prepareItemForCache.bind(this));
     }
     static prepareItemForCache(item) {
         const preparedItem = item;
         return preparedItem;
+    }
+    static async finalizeCachedItems() {
+        console.log("Finalisation des données cache de ", this.name);
+        await this.cache.traverse(this.finalizeCachedItem.bind(this));
+        App_1.App.incAndCheckReadyCounter();
+    }
+    static finalizeCachedItem(item) {
+        return Object.assign(item, {});
     }
     /**
      * Convert to database row

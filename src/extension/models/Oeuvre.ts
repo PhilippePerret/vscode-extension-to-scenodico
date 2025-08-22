@@ -1,5 +1,6 @@
 import { UniversalCacheManager } from '../../bothside/UniversalCacheManager';
 import { UOeuvre } from '../../bothside/UOeuvre';
+import { App } from '../services/App';
 
 export interface IOeuvre {
 	id: string;
@@ -45,7 +46,7 @@ export class Oeuvre extends UOeuvre {
 	/**
 	 * Méthode pour préparation tous les items pour le cache
 	 */
-	public static prepareItemsForCache(items: IOeuvre[]): void {
+	public static cacheAllData(items: IOeuvre[]): void {
 		this.cache.inject(items, this.prepareItemForCache.bind(this));
 		console.info("Cache après injection", this.cache.getAll());
 	}
@@ -56,6 +57,17 @@ export class Oeuvre extends UOeuvre {
 		const preparedItem = item as FullOeuvre;
 		preparedItem.titres = ["Un titre", "un autre titre", "et encore un"];
 		return preparedItem;
+	}
+
+	public static async finalizeCachedItems(): Promise<void> {
+		console.log("Finalisation des données cache de ", this.name);
+		await this.cache.traverse(this.finalizeCachedItem.bind(this));
+		App.incAndCheckReadyCounter();
+	}
+	private static finalizeCachedItem(item: FullOeuvre): FullOeuvre {
+		return Object.assign(item, {
+
+		});
 	}
 
 	/**
