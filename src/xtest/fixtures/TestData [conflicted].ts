@@ -280,13 +280,6 @@ export class TestData {
             genre: 'nm',
             categorie_id: 'personnage',
             definition: 'Voir en philosophie ce que ça représente.'
-        },
-        {
-            id: 'ecriture',
-            entree: 'Écriture',
-            genre: 'nf',
-            categorie_id: '',
-            definition: 'Domaine dans lequel on se sert de l’écrit pour produire des livres et également son résultat.'
         }
     ];
 
