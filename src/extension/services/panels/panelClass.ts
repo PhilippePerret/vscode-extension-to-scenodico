@@ -10,8 +10,8 @@ import { PanelManager } from './PanelManager';
  */
 export class PanelClass {
   private _panel: vscode.WebviewPanel ;
-  protected _type:string = '';
-  protected _title: string = '';
+  protected _type: string;
+  protected _title: string;
   protected _column: number = 0;
   protected _classe: typeof Entry | typeof Oeuvre | typeof Exemple = Entry ;
   protected _context: vscode.ExtensionContext ; 
@@ -23,8 +23,16 @@ export class PanelClass {
   public get classe():typeof Entry | typeof Oeuvre | typeof Exemple { return this._classe ; }
   public get webview(){ return this.panel.webview ; }
 
-  public constructor(data: Record<string, any>) {
-    this._context = data.context ;
+  public constructor(
+    context: vscode.ExtensionContext,
+    type: string,
+    title: string,
+    column: number
+  ) {
+    this._context = context;
+    this._type = type;
+    this._title = title;
+    this._column = column; 
     this._panel = vscode.window.createWebviewPanel(
       this.type, this.title, this.column, PanelClass.commonPanelOptions
     );

@@ -51,7 +51,6 @@ class App {
         this._context = context;
         PanelManager_1.PanelManager.openPanels(context);
         await this.loadAndCacheAllData();
-        return console.warn("Je m'arrête là pour la moment.");
         PanelManager_1.PanelManager.populatePanels();
     }
     /**
@@ -75,7 +74,6 @@ class App {
     }
     static incAndCheckReadyCounter() {
         --this.readyCounter;
-        console.info("readyCounter = %s", this.readyCounter);
         if (this.readyCounter <= 0) {
             this.okWhenReady();
         }
@@ -104,10 +102,12 @@ class App {
         ]);
         await this.waitUntilReady();
         console.info("[EXTENSION] Fin de préparation des données caches.");
+        /*
         // Pour voir les données ici
-        console.info("Données Entrée formatées", Entry_1.Entry.cacheDebug().getAll());
-        console.info("Données Oeuvres formatées", Oeuvre_1.Oeuvre.cacheDebug().getAll());
-        console.info("Données Exemples formatées", Exemple_1.Exemple.cacheDebug().getAll());
+        console.info("Données Entrée formatées", Entry.cacheDebug().getAll());
+        console.info("Données Oeuvres formatées", Oeuvre.cacheDebug().getAll());
+        console.info("Données Exemples formatées", Exemple.cacheDebug().getAll());
+        //*/
     }
     static async loadAndCacheDataFor(Db, classI) {
         const context = this._context;

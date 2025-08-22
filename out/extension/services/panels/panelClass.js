@@ -41,8 +41,8 @@ const Entry_1 = require("../../models/Entry");
  */
 class PanelClass {
     _panel;
-    _type = '';
-    _title = '';
+    _type;
+    _title;
     _column = 0;
     _classe = Entry_1.Entry;
     _context;
@@ -52,8 +52,11 @@ class PanelClass {
     get panel() { return this._panel; }
     get classe() { return this._classe; }
     get webview() { return this.panel.webview; }
-    constructor(data) {
-        this._context = data.context;
+    constructor(context, type, title, column) {
+        this._context = context;
+        this._type = type;
+        this._title = title;
+        this._column = column;
         this._panel = vscode.window.createWebviewPanel(this.type, this.title, this.column, PanelClass.commonPanelOptions);
     }
     // La différence avec avant, c'est que là, il faut envoyer les données en cache

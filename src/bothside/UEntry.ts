@@ -6,6 +6,15 @@ import { UniversalDicoElement } from './UniversalDicoElement';
 
 export class UEntry extends UniversalDicoElement {
   [key: string]: any;
+
+  static get names(): {[k:string]: {sing: string, plur: string}} {
+    return {
+      min: { sing: "entrée", plur: "entrées"},
+      maj: { sing: "ENTRÉE", plur: "ENTRÉES"},
+      tit: { sing: "Entrée", plur: "Entrées"},
+      tech: { sing: "entry", plur: "entries"}
+    };
+  }
   
    static readonly GENRES = {
     'nm': 'n.m.',

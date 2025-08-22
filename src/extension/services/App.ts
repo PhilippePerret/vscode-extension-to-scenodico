@@ -5,7 +5,6 @@ import { Entry } from '../models/Entry';
 import { Oeuvre } from '../models/Oeuvre';
 import { Exemple } from '../models/Exemple';
 import { AnyElementClass } from '../models/AnyElement';
-import { TypeUnionIType } from '../../bothside/UnversalConstants';
 
 export class App {
   public static _context: vscode.ExtensionContext;
@@ -19,7 +18,6 @@ export class App {
     this._context = context; 
     PanelManager.openPanels(context);
     await this.loadAndCacheAllData();
-    return console.warn("Je m'arrête là pour la moment.");
     PanelManager.populatePanels();
   }
  
@@ -45,7 +43,6 @@ export class App {
 	}
 	public static incAndCheckReadyCounter(){
 		-- this.readyCounter;
-    console.info("readyCounter = %s", this.readyCounter);
     if (this.readyCounter <= 0) { this.okWhenReady(); }
 	}
 	
@@ -75,10 +72,12 @@ export class App {
     await this.waitUntilReady();
     console.info("[EXTENSION] Fin de préparation des données caches.");
 
+    /*
     // Pour voir les données ici
     console.info("Données Entrée formatées", Entry.cacheDebug().getAll());
     console.info("Données Oeuvres formatées", Oeuvre.cacheDebug().getAll());
     console.info("Données Exemples formatées", Exemple.cacheDebug().getAll());
+    //*/
   }
 
   private static async loadAndCacheDataFor(

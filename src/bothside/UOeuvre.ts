@@ -3,6 +3,15 @@ import { UniversalDicoElement } from './UniversalDicoElement';
 export class UOeuvre extends UniversalDicoElement {
   [key: string]: any;
   
+  static get names(): {[k:string]: {sing:string, plur:string}} {
+    return {
+      min: { sing: "œuvre", plur: "œuvres"},
+      maj: { sing: "ŒUVRE", plur: "ŒUVRES"},
+      tit: { sing: "Œuvre", plur: "Œuvres"},
+      tech: { sing: "oeuvre", plur: "oeuvres"}
+    };
+  }
+ 
   // Mettre en forme les auteurs
   protected static mef_auteurs(auteurs: string): string {
     const regauteurs = /(.+?) ([A-Z \-]+?)\(([HF]), (.+?)\)/;

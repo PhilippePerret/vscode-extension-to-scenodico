@@ -7,6 +7,14 @@ exports.UEntry = void 0;
  */
 const UniversalDicoElement_1 = require("./UniversalDicoElement");
 class UEntry extends UniversalDicoElement_1.UniversalDicoElement {
+    static get names() {
+        return {
+            min: { sing: "entrée", plur: "entrées" },
+            maj: { sing: "ENTRÉE", plur: "ENTRÉES" },
+            tit: { sing: "Entrée", plur: "Entrées" },
+            tech: { sing: "entry", plur: "entries" }
+        };
+    }
     static GENRES = {
         'nm': 'n.m.',
         'nf': 'n.f.',

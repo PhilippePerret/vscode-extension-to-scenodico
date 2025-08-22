@@ -1,12 +1,15 @@
 import * as vscode from 'vscode';
-import { PanelClass } from './panelClass' ;
-import { PanelClassDico } from './panelClassDico';
-import { PanelClassOeuvre } from './panelClassOeuvre';
-import { PanelClassExemple } from './panelClassExemple';
 import { Entry } from '../../models/Entry';
 import { Exemple } from '../../models/Exemple';
 import { Oeuvre } from '../../models/Oeuvre';
 import { PanelWrapper, WebviewPanelWrapper } from '../InterComs';
+import { PanelClass } from './panelClass';
+import { PanelClassDico } from './panelClassDico';
+import { PanelClassOeuvre } from './panelClassOeuvre';
+import { UEntry } from '../../../bothside/UEntry';
+import { PanelClassExemple } from './panelClassExemple';
+import { UOeuvre } from '../../../bothside/UOeuvre';
+import { UExemple } from '../../../bothside/UExemple';
 
 export class PanelManager {
 	private static _panels: PanelClass[] = [];
@@ -24,17 +27,18 @@ export class PanelManager {
 		// panneaux
 		PanelClass.defineCommonPanelOptions(c) ; 
 		
-		this._panels.push(new PanelClassDico({context:c}));
-		this._panels.push(new PanelClassOeuvre({context:c}));
-		this._panels.push(new PanelClassExemple({context:c}));
+		this._panels.push(new PanelClassDico( c, UEntry.names.tech.plur, UEntry.names.tit.plur, 1 ));
+		this._panels.push(new PanelClassOeuvre(c, UOeuvre.names.tech.plur, UOeuvre.names.tit.plur, 2));
+		this._panels.push(new PanelClassExemple(c, UExemple.names.tech.plur, UExemple.names.tit.plur, 3));
 		
+		console.log("Fin de l'ouverture des panneaux.");
 	}
 
 	/**
 	 * Appelée après la mise en cache des données pour peupler les panneaux.
 	 */
 	public static populatePanels(){
-		console.log("[EXTENSION] Je dois apprendre à peupler les panneaux");
+		console.log("[EXTENSION] Je dois apprendre à repeupler les panneaux");
 		this._panels.forEach(panel => {
 			// TODO Appeler le peuplement de chaque panneau (la fonction existe déjà mais il faut maintenant lui envoyer les données)
 		});

@@ -2,11 +2,13 @@
 import { Entry } from './entries/Entry';
 import { Oeuvre } from './oeuvres/Oeuvre';
 import { Exemple } from './exemples/Exemple';
-import { CommonClassItem, ItemData } from './CommonClassItem';
+
+
+type CommonClassItem = typeof Entry | typeof Oeuvre | typeof Exemple;
 
 // Retourne la classe d'element en fonction du panneau
 // P.e. 'entries' => Entry (typeof CommonClassItem)
-function ItemClass(panelId: string): typeof CommonClassItem | undefined {
+function ItemClass(panelId: string): CommonClassItem | undefined {
   switch(panelId) {
     case 'entries':
       return Entry;
@@ -74,34 +76,9 @@ window.addEventListener('message', (event: MessageEvent<Message>) => {
         targetElement.innerHTML = message.content;
       }
       break;
-    case 'cacheData':
-      // Mise en cache des données du type
-      cacheAllData(message.items, message.panelId);
-      break;
-    case 'populate':
-      console.log(`[WEBVIEW] Demande population du panneau ${message.panelId} reçue.`);
-      populatePanel(message.panelId);
-      break;
   }
 });
-
-// Fonction généric pour mettre en cache toutes les données
-function cacheAllData(items: ItemData[], panelId: string): void {
-  (ItemClass(panelId) as typeof CommonClassItem).buildCache(items);
-  vscode.postMessage({ command: 'cache-ready' }); // pour l'instant de sert à rien
-}
-
-// Fonction générique pour peupler les panneaux (i.e. afficher les données)
-// NOTE TODO Pour le moment, +items+ ne sert à rien car on devrait récupérer
-// les données du cache de l'élément et non pas de la base de données.
-function populatePanel(panelId: string): void {
-  (ItemClass(panelId) as typeof CommonClassItem)
-    .finalizeCachedData()
-    .populatePanel()
-    .observePanel();
-  vscode.postMessage({ command: 'panel-ready' });
-}
-
+// Fonction générique pour peup
 function queryDOMObject(message: Message): void {
   const element = document.querySelector(message.selector);
 

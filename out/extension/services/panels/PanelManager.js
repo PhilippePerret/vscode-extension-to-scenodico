@@ -35,11 +35,14 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PanelManager = void 0;
 const vscode = __importStar(require("vscode"));
+const InterComs_1 = require("../InterComs");
 const panelClass_1 = require("./panelClass");
 const panelClassDico_1 = require("./panelClassDico");
 const panelClassOeuvre_1 = require("./panelClassOeuvre");
+const UEntry_1 = require("../../../bothside/UEntry");
 const panelClassExemple_1 = require("./panelClassExemple");
-const InterComs_1 = require("../InterComs");
+const UOeuvre_1 = require("../../../bothside/UOeuvre");
+const UExemple_1 = require("../../../bothside/UExemple");
 class PanelManager {
     static _panels = [];
     static activePanels = [];
@@ -53,15 +56,16 @@ class PanelManager {
         // On définit les options communes pour la construction des
         // panneaux
         panelClass_1.PanelClass.defineCommonPanelOptions(c);
-        this._panels.push(new panelClassDico_1.PanelClassDico({ context: c }));
-        this._panels.push(new panelClassOeuvre_1.PanelClassOeuvre({ context: c }));
-        this._panels.push(new panelClassExemple_1.PanelClassExemple({ context: c }));
+        this._panels.push(new panelClassDico_1.PanelClassDico(c, UEntry_1.UEntry.names.tech.plur, UEntry_1.UEntry.names.tit.plur, 1));
+        this._panels.push(new panelClassOeuvre_1.PanelClassOeuvre(c, UOeuvre_1.UOeuvre.names.tech.plur, UOeuvre_1.UOeuvre.names.tit.plur, 2));
+        this._panels.push(new panelClassExemple_1.PanelClassExemple(c, UExemple_1.UExemple.names.tech.plur, UExemple_1.UExemple.names.tit.plur, 3));
+        console.log("Fin de l'ouverture des panneaux.");
     }
     /**
      * Appelée après la mise en cache des données pour peupler les panneaux.
      */
     static populatePanels() {
-        console.log("[EXTENSION] Je dois apprendre à peupler les panneaux");
+        console.log("[EXTENSION] Je dois apprendre à repeupler les panneaux");
         this._panels.forEach(panel => {
             // TODO Appeler le peuplement de chaque panneau (la fonction existe déjà mais il faut maintenant lui envoyer les données)
         });
