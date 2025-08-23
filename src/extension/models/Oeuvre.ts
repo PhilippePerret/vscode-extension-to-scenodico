@@ -49,7 +49,6 @@ export class Oeuvre extends UOeuvre {
 	 */
 	public static cacheAllData(items: IOeuvre[]): void {
 		this.cache.inject(items, this.prepareItemForCache.bind(this));
-		console.info("Cache après injection", this.cache.getAll());
 	}
 	/**
 	 * Méthode de préparation de la donnée pour le cache

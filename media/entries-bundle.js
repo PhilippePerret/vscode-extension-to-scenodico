@@ -18,14 +18,12 @@
 
   // src/bothside/UOeuvre.ts
   var UOeuvre = class extends UniversalDicoElement {
-    static get names() {
-      return {
-        min: { sing: "\u0153uvre", plur: "\u0153uvres" },
-        maj: { sing: "\u0152UVRE", plur: "\u0152UVRES" },
-        tit: { sing: "\u0152uvre", plur: "\u0152uvres" },
-        tech: { sing: "oeuvre", plur: "oeuvres" }
-      };
-    }
+    static names = {
+      min: { sing: "\u0153uvre", plur: "\u0153uvres" },
+      maj: { sing: "\u0152UVRE", plur: "\u0152UVRES" },
+      tit: { sing: "\u0152uvre", plur: "\u0152uvres" },
+      tech: { sing: "oeuvre", plur: "oeuvres" }
+    };
     // Mettre en forme les auteurs
     static mef_auteurs(auteurs) {
       const regauteurs = /(.+?) ([A-Z \-]+?)\(([HF]), (.+?)\)/;
@@ -141,14 +139,12 @@
 
   // src/bothside/UExemple.ts
   var UExemple = class extends UniversalDicoElement {
-    static get names() {
-      return {
-        min: { sing: "exemple", plur: "exemples" },
-        maj: { sing: "EXEMPLE", plur: "EXEMPLES" },
-        tit: { sing: "Exemple", plur: "Exemples" },
-        tech: { sing: "exemple", plur: "exemples" }
-      };
-    }
+    static names = {
+      min: { sing: "exemple", plur: "exemples" },
+      maj: { sing: "EXEMPLE", plur: "EXEMPLES" },
+      tit: { sing: "Exemple", plur: "Exemples" },
+      tech: { sing: "exemple", plur: "exemples" }
+    };
   };
 
   // src/webviews/exemples/Exemple.ts
@@ -514,14 +510,12 @@
 
   // src/bothside/UEntry.ts
   var UEntry = class extends UniversalDicoElement {
-    static get names() {
-      return {
-        min: { sing: "entr\xE9e", plur: "entr\xE9es" },
-        maj: { sing: "ENTR\xC9E", plur: "ENTR\xC9ES" },
-        tit: { sing: "Entr\xE9e", plur: "Entr\xE9es" },
-        tech: { sing: "entry", plur: "entries" }
-      };
-    }
+    static names = {
+      min: { sing: "entr\xE9e", plur: "entr\xE9es" },
+      maj: { sing: "ENTR\xC9E", plur: "ENTR\xC9ES" },
+      tit: { sing: "Entr\xE9e", plur: "Entr\xE9es" },
+      tech: { sing: "entry", plur: "entries" }
+    };
     static GENRES = {
       "nm": "n.m.",
       "nf": "n.f.",

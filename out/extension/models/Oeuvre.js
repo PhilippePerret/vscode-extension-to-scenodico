@@ -27,7 +27,6 @@ class Oeuvre extends UOeuvre_1.UOeuvre {
      */
     static cacheAllData(items) {
         this.cache.inject(items, this.prepareItemForCache.bind(this));
-        console.info("Cache après injection", this.cache.getAll());
     }
     /**
      * Méthode de préparation de la donnée pour le cache

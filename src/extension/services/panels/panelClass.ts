@@ -47,31 +47,22 @@ export abstract class PanelClass {
     const path = require('path');
     const context = this._context;
     const webview = this.panel.webview;
-    const panelId = this.type;
-        // Load display template using uniform convention: {panelId}/display.html
-    const displayTemplatePath = path.join(context.extensionPath, 'media', panelId, 'display.html');
-    const displayTemplate = fs.readFileSync(displayTemplatePath, 'utf8');
-    const templatesHtml = `<template id="item-template">${displayTemplate}</template>`;
-
-    return this.generatePanelHtml({
-      tipsText: 'f: rechercher, j/k: naviguer, n: nouveau, Enter: éditer'
-    });
-  }
-
-  private generatePanelHtml(options: {
-        tipsText: string;
-        specificStyles?: string;
-        specificScripts?: string;
-        templates?: string;
-    }): string {
-    const fs = require('fs');
-    const path = require('path');
-    const context = this._context;
-    const webview = this.panel.webview;
-    const plurName = this.modelClass.names.tech.plur;
+    // const plurName = this.modelClass.names.tech.plur;
+    const plurName = 'items';
     const mainContent = `<div class="loading">Chargement des ${plurName}…</div>`;
     const toolsContent = `*Outils des ${plurName}*`;
     const editFormContent = `<p>Formulaire d'édition des ${plurName} à implémenter</p>`;
+    //  // Load display template using uniform convention: {panelId}/display.html
+    // const displayTemplatePath = path.join(context.extensionPath, 'media', panelId, 'display.html');
+    // const displayTemplate = fs.readFileSync(displayTemplatePath, 'utf8');
+    // const templatesHtml = `<template id="item-template">${displayTemplate}</template>`;
+
+    const tipsText = 'f: rechercher, j/k: naviguer, n: nouveau, Enter: éditer';
+    const options = {
+      specificStyles: '',
+      specificScripts: '',
+      templates: ''
+    };
 
     // Lire le template
     const templatePath = path.join(context.extensionPath, 'media', 'panel-template.html');
@@ -106,7 +97,7 @@ export abstract class PanelClass {
     html = html.replace(/{{COMMON_CSS_URI}}/g, commonCssUri);
     html = html.replace(/{{CODICON_CSS_URI}}/g, codiconCssUri);
     html = html.replace(/{{MAIN_JS_URI}}/g, mainJsUri);
-    html = html.replace(/{{TIPS_TEXT}}/g, options.tipsText);
+    html = html.replace(/{{TIPS_TEXT}}/g, tipsText);
     html = html.replace(/{{MAIN_CONTENT}}/g, mainContent);
     html = html.replace(/{{EDIT_FORM_CONTENT}}/g, editFormContent);
     html = html.replace(/{{TOOLS_CONTENT}}/g, toolsContent);
