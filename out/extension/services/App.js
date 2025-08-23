@@ -51,7 +51,7 @@ class App {
         this._context = context;
         PanelManager_1.PanelManager.openPanels(context);
         await this.loadAndCacheAllData();
-        PanelManager_1.PanelManager.populatePanels();
+        await PanelManager_1.PanelManager.populatePanels();
     }
     /**
      * La mise en place de fonctions simples pour des boucles d'attente
@@ -118,9 +118,6 @@ class App {
         const rawData = await db.getAll();
         const sortedItems = rawData.sort(classI.sortFonction.bind(classI));
         classI.cacheAllData.call(classI, sortedItems);
-        // TODO Apprendre à classer les items et comment les conserver 
-        // classés ? Le sont-il dans une Map ?
-        // classI.sortFonction.bind(classI)
         this.incAndCheckReadyCounter();
         return true;
     }

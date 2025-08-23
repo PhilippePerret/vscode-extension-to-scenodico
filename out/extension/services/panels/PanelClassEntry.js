@@ -7,4 +7,4 @@ class PanelClassEntry extends panelClass_1.PanelClass {
     modelClass = Entry_1.Entry;
 }
 exports.PanelClassEntry = PanelClassEntry;
-//# sourceMappingURL=panelClassDico.js.map
+//# sourceMappingURL=panelClassEntry.js.map

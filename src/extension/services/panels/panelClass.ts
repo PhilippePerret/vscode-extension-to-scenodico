@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import { Entry } from '../../models/Entry';
 import { Exemple } from '../../models/Exemple';
 import { Oeuvre } from '../../models/Oeuvre';
+import { PanelManager } from './PanelManager';
+import { App } from '../App';
 
 /**
  * Classe d'un panneau quelconque
@@ -39,6 +41,7 @@ export abstract class PanelClass {
     this._panel = vscode.window.createWebviewPanel(
       this.type, this.title, this.column, PanelClass.commonPanelOptions
     );
+    PanelManager.addActivePanel(this.panel);
     this.panel.webview.html = this.getPanelHtml();
   }
 
@@ -109,11 +112,11 @@ export abstract class PanelClass {
     return html;
   }
 
-  // La différence avec avant, c'est que là, il faut envoyer les données en cache
-  // pour que la webview puisse peupler la vue
-  public async populateWebview(): Promise<boolean> {
-    console.warn("Il faut apprendre à peupler le webview/panneau");
-    return true ;
+  // C'est la méthode côté serveur qui demande à la webview de
+  // peupler la vue en affichant les données.
+  public async populate(): Promise<void> {
+
+    App.incAndCheckReadyCounter();
   }
 
   // Fonction qui doit être surclassée par les héritières

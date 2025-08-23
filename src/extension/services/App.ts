@@ -18,7 +18,7 @@ export class App {
     this._context = context; 
     PanelManager.openPanels(context);
     await this.loadAndCacheAllData();
-    PanelManager.populatePanels();
+    await PanelManager.populatePanels();
   }
  
   /**
@@ -31,8 +31,8 @@ export class App {
 	public static readyCounter = 0 ;
 	public static okWhenReady: Function;
 
-  private static resetReadyCounter(value: number) { this.readyCounter = value ;}
-	private static async waitUntilReady(readyInitCounter?: number) {
+  public static resetReadyCounter(value: number) { this.readyCounter = value ;}
+	public static async waitUntilReady(readyInitCounter?: number) {
 		return new Promise<void>((ok) => {
       if ( readyInitCounter ) {
 			  this.readyCounter = readyInitCounter;
@@ -92,9 +92,6 @@ export class App {
     const rawData = await db.getAll();
     const sortedItems = rawData.sort(classI.sortFonction.bind(classI)) ; 
     (classI as AnyElementClass).cacheAllData.call(classI, sortedItems);
-    // TODO Apprendre à classer les items et comment les conserver 
-    // classés ? Le sont-il dans une Map ?
-    // classI.sortFonction.bind(classI)
     this.incAndCheckReadyCounter();
     return true ;
   }

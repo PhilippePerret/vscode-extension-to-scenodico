@@ -1,1 +1,1 @@
-{"version":3,"file":"panelClassDico.js","sourceRoot":"","sources":["../../../../src/extension/services/panels/panelClassDico.ts"],"names":[],"mappings":";;;AAAA,8CAA2C;AAC3C,6CAA0C;AAE1C,MAAa,cAAe,SAAQ,uBAAU;IACrC,UAAU,GAAG,aAAK,CAAC;CAE3B;AAHD,wCAGC"}
+{"version":3,"file":"panelClassDico.js","sourceRoot":"","sources":["../../../../src/extension/services/panels/panelClassDico.ts"],"names":[],"mappings":";;;AAAA,8CAA2C;AAC3C,6CAA0C;AAE1C,MAAa,eAAgB,SAAQ,uBAAU;IACtC,UAAU,GAAG,aAAK,CAAC;CAE3B;AAHD,0CAGC"}

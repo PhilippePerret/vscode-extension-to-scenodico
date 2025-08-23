@@ -36,6 +36,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PanelClass = void 0;
 const vscode = __importStar(require("vscode"));
 const Entry_1 = require("../../models/Entry");
+const PanelManager_1 = require("./PanelManager");
+const App_1 = require("../App");
 /**
  * Classe d'un panneau quelconque
  */
@@ -61,6 +63,7 @@ class PanelClass {
     }
     build() {
         this._panel = vscode.window.createWebviewPanel(this.type, this.title, this.column, PanelClass.commonPanelOptions);
+        PanelManager_1.PanelManager.addActivePanel(this.panel);
         this.panel.webview.html = this.getPanelHtml();
     }
     getPanelHtml() {
@@ -120,11 +123,10 @@ class PanelClass {
         html = html.replace(/{{ITEM_FOOTER}}/g, PanelClass.COMMON_ITEM_FOOTER);
         return html;
     }
-    // La différence avec avant, c'est que là, il faut envoyer les données en cache
-    // pour que la webview puisse peupler la vue
-    async populateWebview() {
-        console.warn("Il faut apprendre à peupler le webview/panneau");
-        return true;
+    // C'est la méthode côté serveur qui demande à la webview de
+    // peupler la vue en affichant les données.
+    async populate() {
+        App_1.App.incAndCheckReadyCounter();
     }
     // Fonction qui doit être surclassée par les héritières
     sortFonction() { }

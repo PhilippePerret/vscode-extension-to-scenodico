@@ -2,14 +2,15 @@ import * as vscode from 'vscode';
 import { Entry } from '../../models/Entry';
 import { Exemple } from '../../models/Exemple';
 import { Oeuvre } from '../../models/Oeuvre';
-import { PanelWrapper, WebviewPanelWrapper } from '../InterComs';
+import { PanelWrapper, WebviewPanelWrapper } from '../InterComs-tests';
 import { PanelClass } from './panelClass';
-import { PanelClassDico } from './panelClassDico';
+import { PanelClassEntry } from './panelClassEntry'; 
 import { PanelClassOeuvre } from './panelClassOeuvre';
 import { UEntry } from '../../../bothside/UEntry';
 import { PanelClassExemple } from './panelClassExemple';
 import { UOeuvre } from '../../../bothside/UOeuvre';
 import { UExemple } from '../../../bothside/UExemple';
+import { App } from '../App';
 
 export class PanelManager {
 	private static _panels: PanelClass[] = [];
@@ -27,7 +28,7 @@ export class PanelManager {
 		// panneaux
 		PanelClass.defineCommonPanelOptions(c) ; 
 		
-		this._panels.push(new PanelClassDico(c, UEntry.names.tech.plur, UEntry.names.tit.plur, 1 ));
+		this._panels.push(new PanelClassEntry(c, UEntry.names.tech.plur, UEntry.names.tit.plur, 1 ));
 		this._panels.push(new PanelClassOeuvre(c, UOeuvre.names.tech.plur, UOeuvre.names.tit.plur, 2));
 		this._panels.push(new PanelClassExemple(c, UExemple.names.tech.plur, UExemple.names.tit.plur, 3));
 		
@@ -37,18 +38,20 @@ export class PanelManager {
 	/**
 	 * Appelée après la mise en cache des données pour peupler les panneaux.
 	 */
-	public static populatePanels(){
+	public static async populatePanels(): Promise<void> {
 		console.log("[EXTENSION] Je dois apprendre à repeupler les panneaux");
-		this._panels.forEach(panel => {
-			// TODO Appeler le peuplement de chaque panneau (la fonction existe déjà mais il faut maintenant lui envoyer les données)
-		});
+		App.resetReadyCounter(3);
+		this._panels.forEach(panel => { panel.populate(); });
+		App.waitUntilReady();
 		console.info("[EXTENSION] Fin de peuplement des panneaux.");
-
 	}
 
 	// Retourne les trois panneaux (Dictionnaire, Oeuvres et Exemples)
 	static getActivePanels(): vscode.WebviewPanel[] {
 		return this.activePanels;
+	}
+	static addActivePanel(panel: vscode.WebviewPanel){
+		this.activePanels.push(panel);
 	}
 
 	// Pour fermer les trois panneaux (je crois que c'est seulement
@@ -64,26 +67,5 @@ export class PanelManager {
 		const panel = this.activePanels.find(p => p.title === title);
 		if (!panel) { return null; }
 		return new WebviewPanelWrapper(panel);
-	}
-/**
-	 * Generic method to load data for any panel using BaseModel classes
-	 */
-	private static async populatePanel(context: vscode.ExtensionContext, webview: vscode.Webview, ModelClass: typeof Entry | typeof Oeuvre | typeof Exemple): Promise<void> {
-		try {
-			// Send to webview
-			const message = {
-				command: 'populate',
-				panelId: ModelClass.panelId
-			};
-			console.log(`[EXTENSION] Envoi de la demande de populate du panneau ${ModelClass.panelId}.`);
-			webview.postMessage(message);
-		} catch (error) {
-			console.error(`Error loading data for ${ModelClass.name}:`, error);
-			webview.postMessage({
-				command: 'updateContent',
-				target: '#items',
-				content: '<div class="error">Erreur lors du chargement des données</div>'
-			});
-		}
 	}
 }
