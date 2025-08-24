@@ -14,8 +14,10 @@ type Tel = typeof Entry | typeof Oeuvre | typeof Exemple;
 export abstract class ClientItem<Tel, Tel_u> {
   data: Tel_u;
   static klass: any;
+  static allItems: any[];
   static deserializeItems(items: string[]) {
-    return items.map( item => new this.klass(JSON.parse(item)));
+    this.allItems = items.map( item => new this.klass(JSON.parse(item)));
+    return this.allItems;
   }
   constructor(itemData: Tel_u){
     this.data = itemData;

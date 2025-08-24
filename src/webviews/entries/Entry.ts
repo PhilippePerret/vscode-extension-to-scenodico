@@ -12,6 +12,7 @@
  */
 import { UEntry } from '../../bothside/UEntry';
 import { FullEntry } from '../../extension/models/Entry';
+import { StringNormalizer } from '../../extension/services/cache/CacheTypes';
 import { ClientItem } from '../ClientItem';
 import { ClientPanel } from '../ClientPanel';
 import { createRpcClient } from '../RpcClient';
@@ -27,17 +28,12 @@ export class Entry extends ClientItem<UEntry, FullEntry> {
   //  * Méthode spécifique Entry
   //  */
   // protected static searchMatchingItems(prefix: string): CachedEntryData[] {
-  //   const prefixLower = StringNormalizer.toLower(prefix);
-  //   const prefixRa = StringNormalizer.rationalize(prefix);
-    
-  //   return this.filter((entry: any) => {
-  //     return entry.entree_min.startsWith(prefixLower) || 
-  //            entry.entree_min_ra.startsWith(prefixRa);
-  //   }) as CachedEntryData[];
-  // }
+ // }
 }
-class PanelEntry extends ClientPanel<Entry> {
-  static minName = 'entry';
+class PanelEntry extends ClientPanel {
+  static readonly minName = 'entry';
+  static readonly titName = 'Entry';
+  static get allItems(){ return Entry.allItems; }
  static populate(items: Entry[]): void {
     items.forEach((item: Entry, index: number) => {
       console.log("Je dois écrire l'item", item.data);
@@ -67,6 +63,22 @@ class PanelEntry extends ClientPanel<Entry> {
     });
 
     // TODO Ici, plus tard, on pourra appeler afterDisplayItems
+  }
+
+  // Méthode de filtrage des entrées
+  // Retourne celles qui commencent par +search+
+  static searchMatchingItems(searched: string): Entry[] {
+    // On rationalise l'entrée pour rechercher plus efficacement
+    // dans la liste.
+    const prefixLower = StringNormalizer.toLower(searched);
+    const prefixRa = StringNormalizer.rationalize(searched);
+    
+    return this.filter((entry: any) => {
+      return entry.entree_min.startsWith(prefixLower) || 
+             entry.entree_min_ra.startsWith(prefixRa);
+    }) as CachedEntryData[];
+ 
+    return [];
   }
 
 }

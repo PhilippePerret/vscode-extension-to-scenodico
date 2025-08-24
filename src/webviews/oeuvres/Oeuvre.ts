@@ -28,8 +28,8 @@ export class Oeuvre extends ClientItem<UOeuvre, FullOeuvre> {
   // }
 }
 
-class PanelOeuvre extends ClientPanel<Oeuvre> {
-  
+class PanelOeuvre extends ClientPanel {
+ static titName = 'Oeuvre';
 }
 
 const rpcOeuvre:RpcChannel = createRpcClient();

@@ -3,6 +3,7 @@ import { RpcChannel } from '../../bothside/RpcChannel';
 import { UExemple } from '../../bothside/UExemple';
 import { FullExemple } from '../../extension/models/Exemple';
 import { ClientItem } from '../ClientItem';
+import { ClientPanel } from '../ClientPanel';
 import { createRpcClient } from '../RpcClient';
 
 export class Exemple extends ClientItem<UExemple, FullExemple> {
@@ -120,6 +121,10 @@ export class Exemple extends ClientItem<UExemple, FullExemple> {
 //     return true;
 //   }
 }
+class PanelExemple extends ClientPanel {
+ static titName = 'Exemple';
+}
+
 
 const RpcEx: RpcChannel = createRpcClient();
 RpcEx.on('populate', (params) => {

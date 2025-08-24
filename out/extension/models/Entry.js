@@ -41,6 +41,8 @@ class Entry extends UEntry_1.UEntry {
         const entreeRationalized = CacheTypes_1.StringNormalizer.rationalize(item.entree);
         // On finalise la donnée en cache
         const pItem = Object.assign(item, {
+            display: 'block',
+            selected: false,
             entree_min: entreeNormalized,
             entree_min_ra: entreeRationalized,
             genre_formated: this.genre(item.genre),
@@ -63,12 +65,6 @@ class Entry extends UEntry_1.UEntry {
         });
         return item;
     }
-    // /**
-    //  * DB class for entries
-    //  */
-    // static get DbClass(): typeof EntryDb {
-    // 	return EntryDb;
-    // }
     /**
      * Generate unique ID from entry text (lowercase, no accents, only letters/numbers)
      *

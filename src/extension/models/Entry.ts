@@ -23,7 +23,8 @@ export interface FullEntry extends IEntry {
   categorie_formated?: string;     // Nom de la catégorie (résolu via Entry.get())
   genre_formated?: string;
 	definition_formated?: string;
-
+	selected: boolean;
+	display: 'block' | 'none';
 }
 
 // Classe de la donnée mise en cache
@@ -66,6 +67,8 @@ export class Entry extends UEntry {
     const entreeRationalized  = StringNormalizer.rationalize(item.entree);
 	// On finalise la donnée en cache
 		const pItem = Object.assign(item, {
+			display: 'block',
+			selected: false,
 			entree_min: entreeNormalized,
 			entree_min_ra: entreeRationalized,
 			genre_formated: this.genre(item.genre),
@@ -91,14 +94,6 @@ export class Entry extends UEntry {
 	
 		return item;
 	}
-
-	// /**
-	//  * DB class for entries
-	//  */
-	// static get DbClass(): typeof EntryDb {
-	// 	return EntryDb;
-	// }
-
 	/**
 	 * Generate unique ID from entry text (lowercase, no accents, only letters/numbers)
 	 * 
