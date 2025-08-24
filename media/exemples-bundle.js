@@ -4,8 +4,10 @@
   var ClientItem = class {
     data;
     static klass;
+    static allItems;
     static deserializeItems(items) {
-      return items.map((item) => new this.klass(JSON.parse(item)));
+      this.allItems = items.map((item) => new this.klass(JSON.parse(item)));
+      return this.allItems;
     }
     constructor(itemData) {
       this.data = itemData;

@@ -1,6 +1,7 @@
 import { UniversalCacheManager } from '../../bothside/UniversalCacheManager';
 import { UOeuvre } from '../../bothside/UOeuvre';
 import { App } from '../services/App';
+import { StringNormalizer } from '../services/cache/CacheTypes';
 
 export interface IOeuvre {
 	id: string;
@@ -20,12 +21,13 @@ export interface FullOeuvre extends IOeuvre {
   titre_affiche_formated?: string;
   titre_francais_formated?: string;
   titres: string[];                // Tous les titres combinés pour recherche
-  titresLookUp: string[];            // Versions minuscules des titres
+  titresLookUp: string[];          // Versions minuscules des titres (pour filtrage)
   auteurs_formated?: string;
 }
 
 export class Oeuvre extends UOeuvre {
 	public static panelId = 'oeuvres';
+	private static readonly REG_ARTICLES = /\b(an|a|the|le|la|les|l'|de|du)\b/i;
 
 	public static cacheDebug() { return this.cache; }
 	protected static _cacheManagerInstance: UniversalCacheManager<IOeuvre, FullOeuvre> = new UniversalCacheManager();
@@ -63,11 +65,35 @@ export class Oeuvre extends UOeuvre {
 		await this.cache.traverse(this.finalizeCachedItem.bind(this));
 		App.incAndCheckReadyCounter();
 	}
-	private static finalizeCachedItem(item: FullOeuvre): FullOeuvre {
-		return Object.assign(item, {
-			titre_affiche_formated: item.titre_affiche,
-			auteurs_formated: item.auteurs && Oeuvre.mef_auteurs(item.auteurs) 
-		});
+	private static finalizeCachedItem(oeuvre: FullOeuvre): FullOeuvre {
+		    // Créer un array avec tous les titres disponibles
+    const titres: string[] = [];
+
+    if (oeuvre.titre_francais) { titres.push(StringNormalizer.rationalize(oeuvre.titre_francais)); }
+    if (oeuvre.titre_original) { titres.push(StringNormalizer.rationalize(oeuvre.titre_original)); }
+    if (oeuvre.titre_affiche) { titres.push(StringNormalizer.rationalize(oeuvre.titre_affiche)); }
+  
+    // Il faut supprimer les articles dans les titres
+    titres.forEach(titre => {
+      if ( titre.match(this.REG_ARTICLES)) {
+        titres.push(titre.replace(this.REG_ARTICLES, ""));
+      }
+    });
+
+    const uniqTitres: string[] = [];
+    titres.forEach(titre => {
+      if ( uniqTitres.includes(titre) ) { return ; }
+      uniqTitres.push(titre);
+    });
+		// Versions minuscules pour recherche
+    const titresLookUp = uniqTitres.map(titre => StringNormalizer.toLower(titre));
+		
+		return Object.assign(oeuvre, {
+			titres: titres,
+			titre_affiche_formated: oeuvre.titre_affiche,
+			auteurs_formated: oeuvre.auteurs && Oeuvre.mef_auteurs(oeuvre.auteurs),
+			titresLookUp: titresLookUp 
+		}) as FullOeuvre;
 	}
 
 	/**

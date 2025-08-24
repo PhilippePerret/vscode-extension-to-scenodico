@@ -4,8 +4,10 @@ exports.Oeuvre = void 0;
 const UniversalCacheManager_1 = require("../../bothside/UniversalCacheManager");
 const UOeuvre_1 = require("../../bothside/UOeuvre");
 const App_1 = require("../services/App");
+const CacheTypes_1 = require("../services/cache/CacheTypes");
 class Oeuvre extends UOeuvre_1.UOeuvre {
     static panelId = 'oeuvres';
+    static REG_ARTICLES = /\b(an|a|the|le|la|les|l'|de|du)\b/i;
     static cacheDebug() { return this.cache; }
     static _cacheManagerInstance = new UniversalCacheManager_1.UniversalCacheManager();
     static get cache() { return this._cacheManagerInstance; }
@@ -41,10 +43,38 @@ class Oeuvre extends UOeuvre_1.UOeuvre {
         await this.cache.traverse(this.finalizeCachedItem.bind(this));
         App_1.App.incAndCheckReadyCounter();
     }
-    static finalizeCachedItem(item) {
-        return Object.assign(item, {
-            titre_affiche_formated: item.titre_affiche,
-            auteurs_formated: item.auteurs && Oeuvre.mef_auteurs(item.auteurs)
+    static finalizeCachedItem(oeuvre) {
+        // Créer un array avec tous les titres disponibles
+        const titres = [];
+        if (oeuvre.titre_francais) {
+            titres.push(CacheTypes_1.StringNormalizer.rationalize(oeuvre.titre_francais));
+        }
+        if (oeuvre.titre_original) {
+            titres.push(CacheTypes_1.StringNormalizer.rationalize(oeuvre.titre_original));
+        }
+        if (oeuvre.titre_affiche) {
+            titres.push(CacheTypes_1.StringNormalizer.rationalize(oeuvre.titre_affiche));
+        }
+        // Il faut supprimer les articles dans les titres
+        titres.forEach(titre => {
+            if (titre.match(this.REG_ARTICLES)) {
+                titres.push(titre.replace(this.REG_ARTICLES, ""));
+            }
+        });
+        const uniqTitres = [];
+        titres.forEach(titre => {
+            if (uniqTitres.includes(titre)) {
+                return;
+            }
+            uniqTitres.push(titre);
+        });
+        // Versions minuscules pour recherche
+        const titresLookUp = uniqTitres.map(titre => CacheTypes_1.StringNormalizer.toLower(titre));
+        return Object.assign(oeuvre, {
+            titres: titres,
+            titre_affiche_formated: oeuvre.titre_affiche,
+            auteurs_formated: oeuvre.auteurs && Oeuvre.mef_auteurs(oeuvre.auteurs),
+            titresLookUp: titresLookUp
         });
     }
     /**

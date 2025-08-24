@@ -23,64 +23,22 @@ export class Entry extends ClientItem<UEntry, FullEntry> {
   static readonly minName = 'entry';
   static readonly klass = Entry;
  
-  // /**
-  //  * Recherche d'entrées par préfixe (optimisée)
-  //  * Méthode spécifique Entry
-  //  */
-  // protected static searchMatchingItems(prefix: string): CachedEntryData[] {
- // }
 }
+
 class PanelEntry extends ClientPanel {
   static readonly minName = 'entry';
   static readonly titName = 'Entry';
-  static get allItems(){ return Entry.allItems; }
- static populate(items: Entry[]): void {
-    items.forEach((item: Entry, index: number) => {
-      console.log("Je dois écrire l'item", item.data);
-      const data = item.data;
-      const clone = this.cloneItemTemplate() as DocumentFragment;
-      const mainElement = clone.querySelector('.' + this.minName);
-      if ( mainElement ) {
-        mainElement.setAttribute('data-id', data.id);
-        mainElement.setAttribute('data-index', index.toString());
-      }
-
-      // Régler les props
-      Object.keys(data).forEach(prop => {
-        const value = ((data as unknown) as Record<string, string>)[prop] as string;
-        clone
-          .querySelectorAll(`[data-prop="${prop}"]`)
-          .forEach( element => {
-            if ( value.startsWith('<') ) {
-              element.innerHTML = value;
-            } else {
-              element.textContent = value;
-            }
-          });
-      });
-      // Et on l'ajoute au conteneur
-      this.container && this.container.appendChild(clone);
-    });
-
-    // TODO Ici, plus tard, on pourra appeler afterDisplayItems
-  }
-
+  static get allItems() { return Entry.allItems; }
   // Méthode de filtrage des entrées
   // Retourne celles qui commencent par +search+
   static searchMatchingItems(searched: string): Entry[] {
-    // On rationalise l'entrée pour rechercher plus efficacement
-    // dans la liste.
     const prefixLower = StringNormalizer.toLower(searched);
     const prefixRa = StringNormalizer.rationalize(searched);
-    
-    return this.filter((entry: any) => {
-      return entry.entree_min.startsWith(prefixLower) || 
-             entry.entree_min_ra.startsWith(prefixRa);
-    }) as CachedEntryData[];
- 
-    return [];
+    return this.filter((entryData: {[k:string]: any}) => {
+      return entryData.entree_min.startsWith(prefixLower) || 
+             entryData.entree_min_ra.startsWith(prefixRa);
+    }) as Entry[];
   }
-
 }
 
 const RpcEntry = createRpcClient();

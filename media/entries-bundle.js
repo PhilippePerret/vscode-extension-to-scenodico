@@ -1,11 +1,30 @@
 "use strict";
 (() => {
+  // src/extension/services/cache/CacheTypes.ts
+  var StringNormalizer = class {
+    /**
+     * Normalise une chaîne en minuscules
+     */
+    static toLower(text) {
+      return text.toLowerCase();
+    }
+    /**
+     * Normalise une chaîne en supprimant les accents et diacritiques
+     * TODO: À améliorer avec une vraie fonction de normalisation
+     */
+    static rationalize(text) {
+      return text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]/g, "");
+    }
+  };
+
   // src/webviews/ClientItem.ts
   var ClientItem = class {
     data;
     static klass;
+    static allItems;
     static deserializeItems(items) {
-      return items.map((item) => new this.klass(JSON.parse(item)));
+      this.allItems = items.map((item) => new this.klass(JSON.parse(item)));
+      return this.allItems;
     }
     constructor(itemData) {
       this.data = itemData;
@@ -14,16 +33,85 @@
 
   // src/webviews/ClientPanel.ts
   var ClientPanel = class {
+    static minName;
+    static titName;
     static _container;
     static _itemTemplate;
+    static _searchInput;
+    static get allItems() {
+      return [];
+    }
     static get container() {
       return this._container || (this._container = document.querySelector("main#items"));
     }
     static get itemTemplate() {
       return this._itemTemplate || (this._itemTemplate = document.querySelector("template#item-template"));
     }
+    static get searchInput() {
+      return this._searchInput || (this._searchInput = document.querySelector("#search-input"));
+    }
     static cloneItemTemplate() {
       return this.itemTemplate.content.cloneNode(true);
+    }
+    static populate(items) {
+      items.forEach((item, index) => {
+        const data = item.data;
+        const clone = this.cloneItemTemplate();
+        const mainElement = clone.querySelector("." + this.minName);
+        if (mainElement) {
+          mainElement.setAttribute("data-id", data.id);
+          mainElement.setAttribute("data-index", index.toString());
+        }
+        Object.keys(data).forEach((prop) => {
+          const value = data[prop];
+          clone.querySelectorAll(`[data-prop="${prop}"]`).forEach((element) => {
+            if (value.startsWith("<")) {
+              element.innerHTML = value;
+            } else {
+              element.textContent = value;
+            }
+          });
+        });
+        this.container && this.container.appendChild(clone);
+      });
+      this.observePanel();
+    }
+    static observePanel() {
+      const Input = this.searchInput;
+      Input.addEventListener("input", this.filterItems.bind(this));
+      Input.addEventListener("keyup", this.filterItems.bind(this));
+    }
+    static filterItems(ev) {
+      const Input = this.searchInput;
+      const searched = Input.value.trim();
+      const allCount = this.allItems.length;
+      const matchingItems = this.searchMatchingItems(searched);
+      const matchingCount = matchingItems.length;
+      console.log('[CLIENT %s] Filtering with "%s" - %i founds / %i', this.titName, searched, matchingCount, allCount);
+      const matchingIds = new Set(matchingItems.map((item) => item.data.id));
+      this.allItems.forEach((item) => {
+        const display = matchingIds.has(item.data.id) ? "block" : "none";
+        if (item.data.display !== display) {
+          const obj = document.querySelector(`main#items > div.item[data-id="${item.data.id}"]`);
+          obj.style.display = display;
+          item.data.display = display;
+          item.data.selected = false;
+        }
+        ;
+      });
+    }
+    // Méthode de filtrage qui reçoit les évènements Input
+    // Fonction de recherche qui doit être surclassée par toutes les
+    // classes héritière
+    static searchMatchingItems(search) {
+      return [];
+    }
+    static filter(filtre) {
+      const result = [];
+      this.allItems.forEach((item) => {
+        filtre(item.data) && result.push(item);
+      });
+      return result;
     }
   };
 
@@ -87,42 +175,20 @@
   var Entry = class _Entry extends ClientItem {
     static minName = "entry";
     static klass = _Entry;
-    // /**
-    //  * Recherche d'entrées par préfixe (optimisée)
-    //  * Méthode spécifique Entry
-    //  */
-    // protected static searchMatchingItems(prefix: string): CachedEntryData[] {
-    //   const prefixLower = StringNormalizer.toLower(prefix);
-    //   const prefixRa = StringNormalizer.rationalize(prefix);
-    //   return this.filter((entry: any) => {
-    //     return entry.entree_min.startsWith(prefixLower) || 
-    //            entry.entree_min_ra.startsWith(prefixRa);
-    //   }) as CachedEntryData[];
-    // }
   };
   var PanelEntry = class extends ClientPanel {
     static minName = "entry";
-    static populate(items) {
-      items.forEach((item, index) => {
-        console.log("Je dois \xE9crire l'item", item.data);
-        const data = item.data;
-        const clone = this.cloneItemTemplate();
-        const mainElement = clone.querySelector("." + this.minName);
-        if (mainElement) {
-          mainElement.setAttribute("data-id", data.id);
-          mainElement.setAttribute("data-index", index.toString());
-        }
-        Object.keys(data).forEach((prop) => {
-          const value = data[prop];
-          clone.querySelectorAll(`[data-prop="${prop}"]`).forEach((element) => {
-            if (value.startsWith("<")) {
-              element.innerHTML = value;
-            } else {
-              element.textContent = value;
-            }
-          });
-        });
-        this.container && this.container.appendChild(clone);
+    static titName = "Entry";
+    static get allItems() {
+      return Entry.allItems;
+    }
+    // Méthode de filtrage des entrées
+    // Retourne celles qui commencent par +search+
+    static searchMatchingItems(searched) {
+      const prefixLower = StringNormalizer.toLower(searched);
+      const prefixRa = StringNormalizer.rationalize(searched);
+      return this.filter((entryData) => {
+        return entryData.entree_min.startsWith(prefixLower) || entryData.entree_min_ra.startsWith(prefixRa);
       });
     }
   };
