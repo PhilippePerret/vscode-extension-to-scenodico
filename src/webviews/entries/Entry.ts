@@ -1,4 +1,4 @@
-import '../common';
+import '../InterCom-tests';
 import { UEntry } from '../../bothside/UEntry';
 
 export class Entry extends UEntry {

@@ -28,8 +28,7 @@ export class Oeuvre extends UOeuvre {
 	public static panelId = 'oeuvres';
 
 	public static cacheDebug() { return this.cache; }
-	private static get cache(){ return this._cacheManagerInstance;}
-	private static _cacheManagerInstance: UniversalCacheManager<IOeuvre, FullOeuvre> = new UniversalCacheManager();
+	protected static _cacheManagerInstance: UniversalCacheManager<IOeuvre, FullOeuvre> = new UniversalCacheManager();
 	public static get(oeuvre_id: string): FullOeuvre { return this.cache.get(oeuvre_id) as FullOeuvre ;}
 
 	public static sortFonction(a: Oeuvre, b: Oeuvre): number {

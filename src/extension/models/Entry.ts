@@ -28,8 +28,7 @@ export class Entry extends UEntry {
 	public static panelId: string = 'entries';
 
 	public static cacheDebug() { return this.cache; }
-	private static get cache(){ return this._cacheManagerInstance;}
-	private static _cacheManagerInstance: UniversalCacheManager<IEntry, FullEntry> = new UniversalCacheManager();
+	protected static _cacheManagerInstance: UniversalCacheManager<IEntry, FullEntry> = new UniversalCacheManager();
 	public static get(entry_id: string): FullEntry { return this.cache.get(entry_id) as FullEntry;}
 
 	public static MESSAGES = {

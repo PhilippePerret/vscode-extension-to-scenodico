@@ -1,4 +1,4 @@
-import '../common';
+import '../InterCom-tests';
 import { UExemple } from '../../bothside/UExemple';
 
 export class Exemple extends UExemple {

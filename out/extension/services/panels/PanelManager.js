@@ -10,6 +10,7 @@ const panelClassExemple_1 = require("./panelClassExemple");
 const UOeuvre_1 = require("../../../bothside/UOeuvre");
 const UExemple_1 = require("../../../bothside/UExemple");
 const App_1 = require("../App");
+const Rpc_1 = require("../Rpc");
 class PanelManager {
     static _panels = [];
     static activePanels = [];
@@ -29,6 +30,12 @@ class PanelManager {
         console.log("Fin de l'ouverture des panneaux.");
     }
     /**
+     * Appelée après la fabrication des panneaux pour ouvrir les canaux Rpc
+     */
+    static openRpcChanels() {
+        Rpc_1.CanalEntry.initialize(this._panels[0].panel);
+    }
+    /**
      * Appelée après la mise en cache des données pour peupler les panneaux.
      */
     static async populatePanels() {
@@ -43,6 +50,7 @@ class PanelManager {
         return this.activePanels;
     }
     static addActivePanel(panel) {
+        console.log("Ajout du panneau", panel);
         this.activePanels.push(panel);
     }
     // Pour fermer les trois panneaux (je crois que c'est seulement

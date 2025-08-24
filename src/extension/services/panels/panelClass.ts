@@ -4,6 +4,7 @@ import { Exemple } from '../../models/Exemple';
 import { Oeuvre } from '../../models/Oeuvre';
 import { PanelManager } from './PanelManager';
 import { App } from '../App';
+import { CanalEntry } from '../Rpc';
 
 /**
  * Classe d'un panneau quelconque
@@ -20,7 +21,7 @@ export abstract class PanelClass {
   private get type():string { return this._type ;}
   private get title():string { return this._title ;}
   private get column():number { return this._column ;}
-  private get panel():vscode.WebviewPanel { return this._panel ;}
+  public get panel():vscode.WebviewPanel { return this._panel ;}
   public get classe():typeof Entry | typeof Oeuvre | typeof Exemple { return this._classe ; }
   public get webview(){ return this.panel.webview ; }
 
@@ -41,8 +42,8 @@ export abstract class PanelClass {
     this._panel = vscode.window.createWebviewPanel(
       this.type, this.title, this.column, PanelClass.commonPanelOptions
     );
-    PanelManager.addActivePanel(this.panel);
     this.panel.webview.html = this.getPanelHtml();
+    PanelManager.addActivePanel(this.panel);
   }
 
   private getPanelHtml(): string {
@@ -115,7 +116,7 @@ export abstract class PanelClass {
   // C'est la méthode côté serveur qui demande à la webview de
   // peupler la vue en affichant les données.
   public async populate(): Promise<void> {
-
+    await CanalEntry.askForPopulate(this.classe.getDataSerialized());
     App.incAndCheckReadyCounter();
   }
 

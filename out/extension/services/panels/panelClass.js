@@ -38,6 +38,7 @@ const vscode = __importStar(require("vscode"));
 const Entry_1 = require("../../models/Entry");
 const PanelManager_1 = require("./PanelManager");
 const App_1 = require("../App");
+const Rpc_1 = require("../Rpc");
 /**
  * Classe d'un panneau quelconque
  */
@@ -63,8 +64,8 @@ class PanelClass {
     }
     build() {
         this._panel = vscode.window.createWebviewPanel(this.type, this.title, this.column, PanelClass.commonPanelOptions);
-        PanelManager_1.PanelManager.addActivePanel(this.panel);
         this.panel.webview.html = this.getPanelHtml();
+        PanelManager_1.PanelManager.addActivePanel(this.panel);
     }
     getPanelHtml() {
         const fs = require('fs');
@@ -126,6 +127,7 @@ class PanelClass {
     // C'est la méthode côté serveur qui demande à la webview de
     // peupler la vue en affichant les données.
     async populate() {
+        await Rpc_1.CanalEntry.askForPopulate(this.classe.getDataSerialized());
         App_1.App.incAndCheckReadyCounter();
     }
     // Fonction qui doit être surclassée par les héritières

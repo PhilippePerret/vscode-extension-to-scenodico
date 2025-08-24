@@ -1,4 +1,5 @@
 import { AnyElementClass } from "../extension/models/AnyElement";
+import { UniversalCacheManager } from "./UniversalCacheManager";
 import { TypeUnionElement } from "./UnversalConstants";
 
 // Les données brutes telles qu'elles sont relevées dans la base
@@ -24,6 +25,8 @@ export interface CachedItem {
  */
 export abstract class UniversalDicoElement {
   [key: string]: any; // autorise `this[k]' dans le constructeur
+  protected static _cacheManagerInstance: UniversalCacheManager<any, any>;
+  protected static get cache() { return this._cacheManagerInstance; };
 
   // Le constructeur reçoit toujours un objet contenant
   // Les données. Dans un cas (extension) ce sont les données
@@ -33,5 +36,9 @@ export abstract class UniversalDicoElement {
     for ( const k in data) {
       if (Object.prototype.hasOwnProperty.call(data, k)) { this[k] = data[k]; }
     }
+  }
+
+  static getDataSerialized(){ 
+    return this.cache.getDataSerialized();
   }
 }

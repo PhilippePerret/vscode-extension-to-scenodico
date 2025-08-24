@@ -3,43 +3,39 @@ import { createRpcServer } from './panels/RpcServer';
 import { PanelManager } from './panels/PanelManager';
 import { RpcChannel } from '../../bothside/RpcChannel';
 
-// Ça serait peut-être mieux dans une table...
-const [pEntry, pOeuvre, pExemple] = PanelManager.getActivePanels();
-const rpcEntry: RpcChannel = createRpcServer(pEntry);
-const rpcOeuvre: RpcChannel = createRpcServer(pOeuvre);
-const rpcExemple: RpcChannel = createRpcServer(pExemple);
+abstract class Rpc {
+  protected panel: any;
+  protected rpc: any;
 
-abstract class Rpc<Tpan, Trpc extends RpcChannel> {
-  private _panel: Tpan;
-  private _rpc: RpcChannel ;
-  private get panel(){return this._panel;}
-
-  constructor(panel: Tpan){
-    this._panel = panel;
-    this._rpc = this.getRpc() as Trpc;
-  }
-  get rpc(){
-    return this._rpc;
-  }
-  getRpc() {
-    switch(this.panel) {
-      case pEntry: return rpcEntry;
-      case pOeuvre: return rpcOeuvre;
-      case pExemple: return rpcExemple;
-    }
+  // C'est ici qu'on détermine le panneau, quand il est fait
+  initialize(panel: vscode.WebviewPanel) {
+    this.panel = panel;
+    this.rpc = createRpcServer(panel);
   }
 }
 
 // Toutes les commandes de message doivent être définies ici
-class RpcEntry extends Rpc<typeof pEntry, typeof rpcEntry> {
+class RpcEntry extends Rpc {
+  // protected _panel = undefined; 
   
   // Pour demander au panneau le peuplement du panneau en lui
   // transmettant les données des entrées.
-  async askForPopulate(): Promise<void>{
-    this.rpc.notify("populate", { data: {} /* TODO transmettre les données */ });
+  async askForPopulate(entries: {[k:string]: any}): Promise<void>{
+    this.rpc.ask("populate", { data: entries }).then( (retour: {[k:string]:any}) => {
+      console.log("Retour après populate", retour);
+    });
   }
 
 
 }
 // C'est cette constante exposée que l'extension doit appeler de partout
-export const CanalEntry = new RpcEntry(pEntry);
+/**
+ * Pour envoyer un message à la webvew des entrées :
+ *  1)  Implémenter la méthode '<methode>' dans la classe RpcEntry ci-dessus, qui
+ *      envoi le message '<mon-message>'
+ *  Z)  Côté webview, implémenter la réception du message '<mon-message>' (et 
+ *      le retour si ça n'est pas une simple notification)
+ *  3)  Appeler 'CanalEntry.<methode>(...)' depuis n'importe où de l'extension
+ */
+
+export const CanalEntry = new RpcEntry();

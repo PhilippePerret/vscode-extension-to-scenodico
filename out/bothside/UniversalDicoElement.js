@@ -10,6 +10,9 @@ exports.UniversalDicoElement = void 0;
  *
  */
 class UniversalDicoElement {
+    static _cacheManagerInstance;
+    static get cache() { return this._cacheManagerInstance; }
+    ;
     // Le constructeur reçoit toujours un objet contenant
     // Les données. Dans un cas (extension) ce sont les données
     // provenant de la base de données, dans l'autre cas (webview)
@@ -20,6 +23,9 @@ class UniversalDicoElement {
                 this[k] = data[k];
             }
         }
+    }
+    static getDataSerialized() {
+        return this.cache.getDataSerialized();
     }
 }
 exports.UniversalDicoElement = UniversalDicoElement;

@@ -18,6 +18,7 @@ export class App {
     this._context = context; 
     PanelManager.openPanels(context);
     await this.loadAndCacheAllData();
+    PanelManager.openRpcChanels();
     await PanelManager.populatePanels();
   }
  

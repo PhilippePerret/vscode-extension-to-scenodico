@@ -11,6 +11,7 @@ import { PanelClassExemple } from './panelClassExemple';
 import { UOeuvre } from '../../../bothside/UOeuvre';
 import { UExemple } from '../../../bothside/UExemple';
 import { App } from '../App';
+import { CanalEntry } from '../Rpc';
 
 export class PanelManager {
 	private static _panels: PanelClass[] = [];
@@ -34,7 +35,12 @@ export class PanelManager {
 		
 		console.log("Fin de l'ouverture des panneaux.");
 	}
-
+	/**
+	 * Appelée après la fabrication des panneaux pour ouvrir les canaux Rpc
+	 */
+	public static openRpcChanels(): void {
+		CanalEntry.initialize(this._panels[0].panel);
+	}
 	/**
 	 * Appelée après la mise en cache des données pour peupler les panneaux.
 	 */
@@ -51,6 +57,7 @@ export class PanelManager {
 		return this.activePanels;
 	}
 	static addActivePanel(panel: vscode.WebviewPanel){
+		console.log("Ajout du panneau", panel);
 		this.activePanels.push(panel);
 	}
 

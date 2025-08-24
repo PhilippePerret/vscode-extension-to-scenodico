@@ -40,6 +40,10 @@ class UniversalCacheManager {
         this._prepared = true;
         this._built = true;
     }
+    // Retourne les données sérialisées (pour envoi par message)
+    getDataSerialized() {
+        return this.getAll().map(item => JSON.stringify(item));
+    }
 }
 exports.UniversalCacheManager = UniversalCacheManager;
 //# sourceMappingURL=UniversalCacheManager.js.map

@@ -10,7 +10,6 @@ const Oeuvre_1 = require("./Oeuvre");
 class Exemple extends UExemple_1.UExemple {
     static panelId = 'exemples';
     static cacheDebug() { return this.cache; }
-    static get cache() { return this._cacheManagerInstance; }
     static _cacheManagerInstance = new UniversalCacheManager_1.UniversalCacheManager();
     static sortFonction(a, b) {
         // First sort by oeuvre ID (oeuvre_id)

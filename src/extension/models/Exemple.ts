@@ -28,8 +28,7 @@ export class Exemple extends UExemple {
 	public static panelId = 'exemples';
 
 	public static cacheDebug() { return this.cache; }
-	private static get cache(){ return this._cacheManagerInstance;}
-	private static _cacheManagerInstance: UniversalCacheManager<IExemple, FullExemple> = new UniversalCacheManager();
+	protected static _cacheManagerInstance: UniversalCacheManager<IExemple, FullExemple> = new UniversalCacheManager();
 
 
 	public static sortFonction(a: Exemple, b: Exemple): number {

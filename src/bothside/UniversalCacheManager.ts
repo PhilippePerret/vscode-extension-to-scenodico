@@ -47,4 +47,9 @@ export class UniversalCacheManager<Tin extends InputItem, Tfull extends FullCach
     this._prepared = true;
     this._built = true;
   }
+
+  // Retourne les données sérialisées (pour envoi par message)
+  getDataSerialized(){
+    return this.getAll().map(item => JSON.stringify(item));
+  }
 }

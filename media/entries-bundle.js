@@ -3,6 +3,10 @@
   // src/bothside/UniversalDicoElement.ts
   var UniversalDicoElement = class {
     // autorise `this[k]' dans le constructeur
+    static _cacheManagerInstance;
+    static get cache() {
+      return this._cacheManagerInstance;
+    }
     // Le constructeur reçoit toujours un objet contenant
     // Les données. Dans un cas (extension) ce sont les données
     // provenant de la base de données, dans l'autre cas (webview)
@@ -13,6 +17,9 @@
           this[k] = data[k];
         }
       }
+    }
+    static getDataSerialized() {
+      return this.cache.getDataSerialized();
     }
   };
 
@@ -44,7 +51,68 @@
     }
   };
 
+  // src/bothside/RpcChannel.ts
+  var RpcChannel = class {
+    constructor(sender, receiver) {
+      this.sender = sender;
+      this.receiver = receiver;
+      this.receiver(this.handleMessage.bind(this));
+    }
+    counter = 0;
+    pending = /* @__PURE__ */ new Map();
+    handlers = /* @__PURE__ */ new Map();
+    handleMessage(msg) {
+      if ("id" in msg && "method" in msg) {
+        const handler = this.handlers.get(msg.method);
+        if (handler) {
+          Promise.resolve(handler(msg.params)).then((result) => {
+            this.sender({ id: msg.id, result });
+          });
+        }
+      } else if ("id" in msg && "result" in msg) {
+        const cb = this.pending.get(msg.id);
+        if (cb) {
+          cb(msg.result);
+          this.pending.delete(msg.id);
+        }
+      } else if ("method" in msg) {
+        const handler = this.handlers.get(msg.method);
+        if (handler) {
+          handler(msg.params);
+        }
+      }
+    }
+    ask(method, params) {
+      const id = this.counter++;
+      const req = { id, method, params };
+      this.sender(req);
+      return new Promise((resolve) => {
+        this.pending.set(id, resolve);
+      });
+    }
+    notify(method, params) {
+      const notif = { method, params };
+      this.sender(notif);
+    }
+    on(method, handler) {
+      this.handlers.set(method, handler);
+    }
+  };
+
+  // src/webviews/RpcClient.ts
+  function createRpcClient() {
+    return new RpcChannel(
+      (msg) => window.parent.postMessage(msg, "*"),
+      (cb) => window.addEventListener("message", (event) => cb(event.data))
+    );
+  }
+
   // src/webviews/oeuvres/Oeuvre.ts
+  var rpcOeuvre = createRpcClient();
+  rpcOeuvre.on("populate", (data) => {
+    console.log("[WEBVIEW] Peuplement du panneau avec les donn\xE9es", data);
+    return "J'ai bien peupl\xE9 le panneau";
+  });
   var Oeuvre = class extends UOeuvre {
     static minName = "oeuvre";
     // private static readonly REG_ARTICLES = /\b(an|a|the|le|la|les|l'|de|du)\b/i ;
@@ -58,68 +126,6 @@
     // static readonly ERRORS = {
     //   'no-items': 'Aucune œuvre dans la base, bizarrement…',
     // };
-    // static formateProp(prop: string, value: any): string {
-    //   switch(prop) {
-    //     case 'annee':
-    //       return value ? value.toString() : '';
-    //     default:
-    //       return value || '';
-    //   }
-    // }
-    // /**
-    //  * Prépare une œuvre pour le cache de recherche
-    //  * SEULE méthode spécifique - le reste hérite de CommonClassItem !
-    //  */
-    // static prepareItemForCache(oeuvre: OeuvreData): CachedOeuvreData {
-    //   // Créer un array avec tous les titres disponibles
-    //   const titres: string[] = [];
-    //   if (oeuvre.titre_francais) {
-    //     titres.push(StringNormalizer.rationalize(oeuvre.titre_francais));
-    //   }
-    //   if (oeuvre.titre_original) {
-    //     titres.push(StringNormalizer.rationalize(oeuvre.titre_original));
-    //   }
-    //   if (oeuvre.titre_affiche) {
-    //     titres.push(StringNormalizer.rationalize(oeuvre.titre_affiche));
-    //   }
-    //   // Il faut supprimer les articles dans les titres
-    //   titres.forEach(titre => {
-    //     if ( titre.match(this.REG_ARTICLES)) {
-    //       titres.push(titre.replace(this.REG_ARTICLES, ""));
-    //     }
-    //   });
-    //   const uniqTitres: string[] = [];
-    //   titres.forEach(titre => {
-    //     if ( uniqTitres.includes(titre) ) { return ; }
-    //     uniqTitres.push(titre);
-    //   });
-    //   // Versions minuscules pour recherche
-    //   const titresLookUp = uniqTitres.map(titre => StringNormalizer.toLower(titre));
-    //   // console.info("titres min", titresLookUp);
-    //   return {
-    //     id: oeuvre.id,
-    //     titre_affiche: oeuvre.titre_affiche,
-    //     titre_original: oeuvre.titre_original,
-    //     titre_francais: oeuvre.titre_francais,
-    //     titres: titres,
-    //     titresLookUp: titresLookUp,
-    //     annee: oeuvre.annee,
-    //     auteurs: oeuvre.auteurs,
-    //     resume: oeuvre.resume
-    //   };
-    // }
-    // static finalizeCachedItem(item: CacheableItem): void {
-    //   // rien à faire pour le moment, mais il faut que la fonction
-    //   // soit implémentée.
-    //   if ( item.titre_affiche !== item.titre_original ) {
-    //     item.titre_affiche_formated = item.titre_affiche;
-    //   }
-    //   if ( item.titre_francais && item.titre_francais !== item.titre_original) {
-    //     item.titre_francais_formated = item.titre_francais;
-    //   }
-    //   // Pour le moment, le résumé reste le même, mais ensuite il sera
-    //   // possible de le faire en markdown
-    //   item.resume_formated = item.resume;
     // /**
     //  * Recherche d'œuvres par titre (optimisée)
     //  * Méthode spécifique Oeuvre
@@ -337,7 +343,7 @@
   };
   window.Exemple = Exemple;
 
-  // src/webviews/common.ts
+  // src/webviews/InterCom-tests.ts
   var vscode = acquireVsCodeApi();
   window.addEventListener("message", (event) => {
     const message = event.data;

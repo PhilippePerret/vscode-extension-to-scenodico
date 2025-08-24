@@ -7,7 +7,6 @@ const App_1 = require("../services/App");
 class Oeuvre extends UOeuvre_1.UOeuvre {
     static panelId = 'oeuvres';
     static cacheDebug() { return this.cache; }
-    static get cache() { return this._cacheManagerInstance; }
     static _cacheManagerInstance = new UniversalCacheManager_1.UniversalCacheManager();
     static get(oeuvre_id) { return this.cache.get(oeuvre_id); }
     static sortFonction(a, b) {
