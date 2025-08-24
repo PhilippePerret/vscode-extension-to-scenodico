@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CanalEntry = void 0;
+exports.CanalExemple = exports.CanalOeuvre = exports.CanalEntry = void 0;
 const RpcServer_1 = require("./panels/RpcServer");
 class Rpc {
     panel;
@@ -10,17 +10,25 @@ class Rpc {
         this.panel = panel;
         this.rpc = (0, RpcServer_1.createRpcServer)(panel);
     }
+    // ON peut définir ici les méthodes communes à tous les canaux.
+    // Pour demander au panneau le peuplement du panneau en lui
+    // transmettant les données des entrées.
+    async askForPopulate(data) {
+        console.log("[EXTENSION] Envoi des données du %s pour peuplement", this.panelName, w);
+        this.rpc.ask("populate", { data: data }).then((retour) => {
+            console.log("Retour après populate des données du %s.", this.panelName, retour);
+        });
+    }
 }
 // Toutes les commandes de message doivent être définies ici
 class RpcEntry extends Rpc {
-    // protected _panel = undefined; 
-    // Pour demander au panneau le peuplement du panneau en lui
-    // transmettant les données des entrées.
-    async askForPopulate(entries) {
-        this.rpc.ask("populate", { data: entries }).then((retour) => {
-            console.log("Retour après populate", retour);
-        });
-    }
+    panelName = 'panneau des entrées';
+}
+class RpcOeuvre extends Rpc {
+    panelName = 'panneau des œuvres';
+}
+class RpcExemple extends Rpc {
+    panelName = 'panneau des exemples';
 }
 // C'est cette constante exposée que l'extension doit appeler de partout
 /**
@@ -32,4 +40,6 @@ class RpcEntry extends Rpc {
  *  3)  Appeler 'CanalEntry.<methode>(...)' depuis n'importe où de l'extension
  */
 exports.CanalEntry = new RpcEntry();
+exports.CanalOeuvre = new RpcOeuvre();
+exports.CanalExemple = new RpcExemple();
 //# sourceMappingURL=Rpc.js.map

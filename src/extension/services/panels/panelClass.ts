@@ -15,11 +15,11 @@ export abstract class PanelClass {
   protected _type: string;
   protected _title: string;
   protected _column: number = 0;
-  protected _classe: typeof Entry | typeof Oeuvre | typeof Exemple = Entry ;
+  protected abstract _classe: typeof Entry | typeof Oeuvre | typeof Exemple ;
   protected _context: vscode.ExtensionContext ; 
   
   private get type():string { return this._type ;}
-  private get title():string { return this._title ;}
+  public get title():string { return this._title ;}
   private get column():number { return this._column ;}
   public get panel():vscode.WebviewPanel { return this._panel ;}
   public get classe():typeof Entry | typeof Oeuvre | typeof Exemple { return this._classe ; }
@@ -113,10 +113,14 @@ export abstract class PanelClass {
     return html;
   }
 
+  // Doit être surclassée par les héritières
+  protected abstract canalRpc: any;
   // C'est la méthode côté serveur qui demande à la webview de
   // peupler la vue en affichant les données.
   public async populate(): Promise<void> {
-    await CanalEntry.askForPopulate(this.classe.getDataSerialized());
+    if (this.canalRpc) {
+      await this.canalRpc.askForPopulate(this.classe.getDataSerialized());
+    }
     App.incAndCheckReadyCounter();
   }
 

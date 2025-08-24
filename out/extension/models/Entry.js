@@ -10,10 +10,9 @@ class Entry extends UEntry_1.UEntry {
     static panelId = 'entries';
     static cacheDebug() { return this.cache; }
     static _cacheManagerInstance = new UniversalCacheManager_1.UniversalCacheManager();
+    static get cache() { return this._cacheManagerInstance; }
+    ;
     static get(entry_id) { return this.cache.get(entry_id); }
-    static MESSAGES = {
-        'loading-message': "Chargement des entrées du dictionnaire…",
-    };
     static sortFonction(a, b) {
         return a.entree.localeCompare(b.entree, 'fr', {
             sensitivity: 'base',

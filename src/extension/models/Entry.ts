@@ -29,11 +29,9 @@ export class Entry extends UEntry {
 
 	public static cacheDebug() { return this.cache; }
 	protected static _cacheManagerInstance: UniversalCacheManager<IEntry, FullEntry> = new UniversalCacheManager();
+  protected static get cache() { return this._cacheManagerInstance; };
 	public static get(entry_id: string): FullEntry { return this.cache.get(entry_id) as FullEntry;}
 
-	public static MESSAGES = {
-		'loading-message': "Chargement des entrées du dictionnaire…",
-	};
 	public static sortFonction(a: Entry, b: Entry): number {
     return a.entree.localeCompare(b.entree, 'fr', {
       sensitivity: 'base',

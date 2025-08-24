@@ -34,6 +34,8 @@ class PanelManager {
      */
     static openRpcChanels() {
         Rpc_1.CanalEntry.initialize(this._panels[0].panel);
+        Rpc_1.CanalOeuvre.initialize(this._panels[1].panel);
+        Rpc_1.CanalExemple.initialize(this._panels[2].panel);
     }
     /**
      * Appelée après la mise en cache des données pour peupler les panneaux.
@@ -41,7 +43,10 @@ class PanelManager {
     static async populatePanels() {
         console.log("[EXTENSION] Je dois apprendre à repeupler les panneaux");
         App_1.App.resetReadyCounter(3);
-        this._panels.forEach(panel => { panel.populate(); });
+        this._panels.forEach((panel) => {
+            console.log("Panneau à peupler : %s", panel.title); // OK ici, c'est le bon panneau
+            panel.populate();
+        });
         App_1.App.waitUntilReady();
         console.info("[EXTENSION] Fin de peuplement des panneaux.");
     }
@@ -50,7 +55,6 @@ class PanelManager {
         return this.activePanels;
     }
     static addActivePanel(panel) {
-        console.log("Ajout du panneau", panel);
         this.activePanels.push(panel);
     }
     // Pour fermer les trois panneaux (je crois que c'est seulement

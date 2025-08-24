@@ -25,8 +25,7 @@ export interface CachedItem {
  */
 export abstract class UniversalDicoElement {
   [key: string]: any; // autorise `this[k]' dans le constructeur
-  protected static _cacheManagerInstance: UniversalCacheManager<any, any>;
-  protected static get cache() { return this._cacheManagerInstance; };
+protected static cache: UniversalCacheManager<any, any>; 
 
   // Le constructeur reçoit toujours un objet contenant
   // Les données. Dans un cas (extension) ce sont les données

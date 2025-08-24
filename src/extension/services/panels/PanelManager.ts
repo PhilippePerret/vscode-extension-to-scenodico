@@ -11,7 +11,7 @@ import { PanelClassExemple } from './panelClassExemple';
 import { UOeuvre } from '../../../bothside/UOeuvre';
 import { UExemple } from '../../../bothside/UExemple';
 import { App } from '../App';
-import { CanalEntry } from '../Rpc';
+import { CanalEntry, CanalExemple, CanalOeuvre } from '../Rpc';
 
 export class PanelManager {
 	private static _panels: PanelClass[] = [];
@@ -40,6 +40,8 @@ export class PanelManager {
 	 */
 	public static openRpcChanels(): void {
 		CanalEntry.initialize(this._panels[0].panel);
+		CanalOeuvre.initialize(this._panels[1].panel);
+		CanalExemple.initialize(this._panels[2].panel);
 	}
 	/**
 	 * Appelée après la mise en cache des données pour peupler les panneaux.
@@ -47,7 +49,10 @@ export class PanelManager {
 	public static async populatePanels(): Promise<void> {
 		console.log("[EXTENSION] Je dois apprendre à repeupler les panneaux");
 		App.resetReadyCounter(3);
-		this._panels.forEach(panel => { panel.populate(); });
+		this._panels.forEach((panel: PanelClass) => { 
+			console.log("Panneau à peupler : %s", panel.title); // OK ici, c'est le bon panneau
+			panel.populate(); 
+		});
 		App.waitUntilReady();
 		console.info("[EXTENSION] Fin de peuplement des panneaux.");
 	}
@@ -57,7 +62,6 @@ export class PanelManager {
 		return this.activePanels;
 	}
 	static addActivePanel(panel: vscode.WebviewPanel){
-		console.log("Ajout du panneau", panel);
 		this.activePanels.push(panel);
 	}
 

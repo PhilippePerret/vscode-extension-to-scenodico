@@ -3,10 +3,7 @@
   // src/bothside/UniversalDicoElement.ts
   var UniversalDicoElement = class {
     // autorise `this[k]' dans le constructeur
-    static _cacheManagerInstance;
-    static get cache() {
-      return this._cacheManagerInstance;
-    }
+    static cache;
     // Le constructeur reçoit toujours un objet contenant
     // Les données. Dans un cas (extension) ce sont les données
     // provenant de la base de données, dans l'autre cas (webview)

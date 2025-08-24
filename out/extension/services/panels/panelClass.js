@@ -35,10 +35,8 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PanelClass = void 0;
 const vscode = __importStar(require("vscode"));
-const Entry_1 = require("../../models/Entry");
 const PanelManager_1 = require("./PanelManager");
 const App_1 = require("../App");
-const Rpc_1 = require("../Rpc");
 /**
  * Classe d'un panneau quelconque
  */
@@ -47,7 +45,6 @@ class PanelClass {
     _type;
     _title;
     _column = 0;
-    _classe = Entry_1.Entry;
     _context;
     get type() { return this._type; }
     get title() { return this._title; }
@@ -127,7 +124,9 @@ class PanelClass {
     // C'est la méthode côté serveur qui demande à la webview de
     // peupler la vue en affichant les données.
     async populate() {
-        await Rpc_1.CanalEntry.askForPopulate(this.classe.getDataSerialized());
+        if (this.canalRpc) {
+            await this.canalRpc.askForPopulate(this.classe.getDataSerialized());
+        }
         App_1.App.incAndCheckReadyCounter();
     }
     // Fonction qui doit être surclassée par les héritières

@@ -11,6 +11,8 @@ class Exemple extends UExemple_1.UExemple {
     static panelId = 'exemples';
     static cacheDebug() { return this.cache; }
     static _cacheManagerInstance = new UniversalCacheManager_1.UniversalCacheManager();
+    static get cache() { return this._cacheManagerInstance; }
+    ;
     static sortFonction(a, b) {
         // First sort by oeuvre ID (oeuvre_id)
         const oeuvreComparison = a.oeuvre_id.localeCompare(b.oeuvre_id);

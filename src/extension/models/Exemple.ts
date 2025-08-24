@@ -29,6 +29,7 @@ export class Exemple extends UExemple {
 
 	public static cacheDebug() { return this.cache; }
 	protected static _cacheManagerInstance: UniversalCacheManager<IExemple, FullExemple> = new UniversalCacheManager();
+  protected static get cache() { return this._cacheManagerInstance; };
 
 
 	public static sortFonction(a: Exemple, b: Exemple): number {

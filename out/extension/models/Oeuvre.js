@@ -8,6 +8,8 @@ class Oeuvre extends UOeuvre_1.UOeuvre {
     static panelId = 'oeuvres';
     static cacheDebug() { return this.cache; }
     static _cacheManagerInstance = new UniversalCacheManager_1.UniversalCacheManager();
+    static get cache() { return this._cacheManagerInstance; }
+    ;
     static get(oeuvre_id) { return this.cache.get(oeuvre_id); }
     static sortFonction(a, b) {
         const titleA = a.titre_original || a.titre_affiche;
