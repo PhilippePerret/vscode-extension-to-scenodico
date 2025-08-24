@@ -17,7 +17,7 @@ abstract class Rpc {
   // Pour demander au panneau le peuplement du panneau en lui
   // transmettant les données des entrées.
   async askForPopulate(data: {[k:string]: any}): Promise<void>{
-    console.log("[EXTENSION] Envoi des données du %s pour peuplement", this.panelName:w);
+    console.log("[EXTENSION] Envoi des données du %s pour peuplement", this.panelName);
     this.rpc.ask("populate", { data: data }).then( (retour: {[k:string]:any}) => {
       console.log("Retour après populate des données du %s.", this.panelName, retour);
     });
