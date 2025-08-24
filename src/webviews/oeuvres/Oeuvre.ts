@@ -1,31 +1,14 @@
-import '../InterCom-tests';
+// import '../InterCom-tests';
 import { UOeuvre } from '../../bothside/UOeuvre';
 import { RpcChannel } from '../../bothside/RpcChannel';
 import { createRpcClient } from '../RpcClient';
+import { ClientItem } from '../ClientItem';
+import { ClientPanel } from '../ClientPanel';
+import { FullOeuvre } from '../../extension/models/Oeuvre';
 
-const rpcOeuvre:RpcChannel = createRpcClient();
-rpcOeuvre.on('populate', (data) => {
-  console.log("[WEBVIEW] Peuplement du panneau avec les données", data);
-  return "J'ai bien peuplé le panneau";
-});
-
-export class Oeuvre extends UOeuvre {
+export class Oeuvre extends ClientItem<UOeuvre, FullOeuvre> {
   static readonly minName = 'oeuvre';
-
-  // private static readonly REG_ARTICLES = /\b(an|a|the|le|la|les|l'|de|du)\b/i ;
-
-  // // Cache manager spécifique aux oeuvres
-  // private static _cacheManagerInstance: CacheManager<OeuvreData, CachedOeuvreData> = new CacheManager();
-
-  // protected static get cacheManager(): CacheManager<OeuvreData, CachedOeuvreData> {
-  //   return this._cacheManagerInstance;
-  // }
-  // // pour test
-  // static get cacheManagerForced() { return this.cacheManager ; }
-
-  // static readonly ERRORS = {
-  //   'no-items': 'Aucune œuvre dans la base, bizarrement…',
-  // };
+  static readonly klass = Oeuvre;
 
   // /**
   //  * Recherche d'œuvres par titre (optimisée)
@@ -44,6 +27,16 @@ export class Oeuvre extends UOeuvre {
   //   }) as CachedOeuvreData[];
   // }
 }
+
+class PanelOeuvre extends ClientPanel<Oeuvre> {
+  
+}
+
+const rpcOeuvre:RpcChannel = createRpcClient();
+rpcOeuvre.on('populate', (params) => {
+  const items = Oeuvre.deserializeItems(params.data);
+  console.log("[CLIENT-Oeuvres] Items désérialisés", items);
+});
 
 
 (window as any).Oeuvre = Oeuvre ;

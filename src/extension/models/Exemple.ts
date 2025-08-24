@@ -14,7 +14,7 @@ export interface IExemple {
 	notes?: string;
 }
  
-interface FullExemple extends IExemple {
+export interface FullExemple extends IExemple {
 	content_formated: string;
   content_min: string;             // Version minuscules pour recherche
   content_min_ra: string;          // Version rationalisée (sans accents)

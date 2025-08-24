@@ -1,83 +1,16 @@
-import '../InterCom-tests';
+// import '../InterCom-tests';
+import { RpcChannel } from '../../bothside/RpcChannel';
 import { UExemple } from '../../bothside/UExemple';
+import { FullExemple } from '../../extension/models/Exemple';
+import { ClientItem } from '../ClientItem';
+import { createRpcClient } from '../RpcClient';
 
-export class Exemple extends UExemple {
+export class Exemple extends ClientItem<UExemple, FullExemple> {
+  static readonly minName = 'exemple';
+  static readonly klass = Exemple;
+
 //   static readonly minName = 'exemple';
   
-//   // Cache manager spécifique aux exemples
-//   private static _cacheManagerInstance: CacheManager<ExempleData, CachedExempleData> = new CacheManager();
-  
-//   protected static get cacheManager(): CacheManager<ExempleData, CachedExempleData> {
-//     return this._cacheManagerInstance;
-//   }
-  
-//   static readonly ERRORS = {
-//     'no-items': 'Aucun exemple dans la base, bizarrement…',
-//   };
-
-//   static formateProp(prop: string, value: any): string {
-//     return value || '';
-//   }
-
-//   /**
-//    * Finalise la donnée pour le cache
-//    */
-//   static finalizeCachedItem(exemple: AnyCachedData): AnyCachedData {
-//     // Résoudre le titre de l'œuvre
-//     let oeuvreTitle: string | undefined;
-//     if (exemple.oeuvre_id) {
-//       try {
-//         if (Oeuvre.isCacheBuilt) {
-//           const oeuvre = Oeuvre.get(exemple.oeuvre_id);
-//           oeuvreTitle = oeuvre ? oeuvre.titre_affiche : undefined;
-//         }
-//       } catch (error) {
-//         console.warn(`[Exemple] Could not resolve oeuvre ${exemple.oeuvre_id}:`, error);
-//       }
-//     }
-//     exemple.oeuvre_titre = oeuvreTitle ;
-    
-//     // Résoudre l'entrée associée
-//     let entryEntree: string | undefined;
-//     try {
-//       if (Entry.isCacheBuilt) {
-//         const entry = Entry.get(exemple.entry_id);
-//         entryEntree = entry ? entry.entree : undefined;
-//       }
-//     } catch (error) {
-//       console.warn(`[Exemple] Could not resolve entry ${exemple.entry_id}:`, error);
-//     }
-//     exemple.entry_entree = entryEntree ;
- 
-//     return exemple;
-//   }
-//   /**
-//    * Prépare un exemple pour le cache de recherche
-//    * SEULE méthode spécifique - le reste hérite de CommonClassItem !
-//    * 
-//    * TODO En fait, il faut une méthode en deux temps :
-//    *  - le premier ne fait que mettre les données de l'item dans
-//    *    la donnée cachée
-//    *  - le deuxième temps, une fois toutes les données de tous les
-//    *    types chargées, prépare les données spéciales qui ont besoin
-//    *    des autres types.
-//    */
-//   static prepareItemForCache(exemple: ExempleData): CachedExempleData {
-//     const contentNormalized = StringNormalizer.toLower(exemple.content);
-//     const contentRationalized = StringNormalizer.rationalize(exemple.content);
-   
-//     return {
-//       id: exemple.id,
-//       content: exemple.content,
-//       content_min: contentNormalized,
-//       content_min_ra: contentRationalized,
-//       oeuvre_id: exemple.oeuvre_id,
-//       oeuvre_titre: undefined,
-//       entry_id: exemple.entry_id,
-//       entry_entree: undefined
-//     };
-//   }
-
 //   /**
 //    * Filtrage des exemples 
 //    * Méthode spécifique Exemple
@@ -135,24 +68,6 @@ export class Exemple extends UExemple {
 //   static getByOeuvre(oeuvreId: string): CachedExempleData[] {
 //     return this.filter((exemple: any) => exemple.oeuvre_id === oeuvreId) as CachedExempleData[];
 //   }
-
-//   /**
-//    * Récupère tous les exemples associés à une entrée
-//    * Méthode spécifique Exemple
-//    */
-//   static getByEntry(entryId: string): CachedExempleData[] {
-//     return this.filter((exemple: any) => exemple.entry_id === entryId) as CachedExempleData[];
-//   }
-  
-//   // Méthodes typées pour plus de confort (optionnel)
-//   static get(id: string): CachedExempleData | null {
-//     return super.get(id) as CachedExempleData | null;
-//   }
-  
-//   static getAll(): CachedExempleData[] {
-//     return super.getAll() as CachedExempleData[];
-//   }
-
 //   /**
 //    * Post-traitement après affichage : ajouter les titres des films
 //    * IMPORTANT: Cette méthode est appelée après l'affichage initial
@@ -206,4 +121,9 @@ export class Exemple extends UExemple {
 //   }
 }
 
+const RpcEx: RpcChannel = createRpcClient();
+RpcEx.on('populate', (params) => {
+  const items = Exemple.deserializeItems(params.data);
+  console.log("[CLIENT-Exemple] Items désérialisés", items);
+});
 (window as any).Exemple = Exemple;

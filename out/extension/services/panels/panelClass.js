@@ -69,22 +69,23 @@ class PanelClass {
         const path = require('path');
         const context = this._context;
         const webview = this.panel.webview;
+        const panelId = this.type;
         // const plurName = this.modelClass.names.tech.plur;
         const plurName = 'items';
         const mainContent = `<div class="loading">Chargement des ${plurName}…</div>`;
         const toolsContent = `*Outils des ${plurName}*`;
         const editFormContent = `<p>Formulaire d'édition des ${plurName} à implémenter</p>`;
         //  // Load display template using uniform convention: {panelId}/display.html
-        // const displayTemplatePath = path.join(context.extensionPath, 'media', panelId, 'display.html');
-        // const displayTemplate = fs.readFileSync(displayTemplatePath, 'utf8');
-        // const templatesHtml = `<template id="item-template">${displayTemplate}</template>`;
+        const displayTemplatePath = path.join(context.extensionPath, 'media', panelId, 'display.html');
+        const displayTemplate = fs.readFileSync(displayTemplatePath, 'utf8');
+        const templateHtmlItem = `<template id="item-template">${displayTemplate}</template>`;
         const tipsText = 'f: rechercher, j/k: naviguer, n: nouveau, Enter: éditer';
         const options = {
             specificStyles: '',
             specificScripts: '',
-            templates: ''
+            templates: templateHtmlItem
         };
-        // Lire le template
+        // Lire le template général
         const templatePath = path.join(context.extensionPath, 'media', 'panel-template.html');
         let html = fs.readFileSync(templatePath, 'utf8');
         // Générer les URIs pour les ressources

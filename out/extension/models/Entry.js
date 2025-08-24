@@ -43,7 +43,8 @@ class Entry extends UEntry_1.UEntry {
         const pItem = Object.assign(item, {
             entree_min: entreeNormalized,
             entree_min_ra: entreeRationalized,
-            genre_formated: this.genre(item.genre)
+            genre_formated: this.genre(item.genre),
+            definition_formated: item.definition // pour le moment
         });
         return pItem;
     }

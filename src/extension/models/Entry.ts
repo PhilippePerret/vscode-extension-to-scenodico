@@ -14,12 +14,15 @@ export interface IEntry {
 	definition: string;
 }
 
+// TODO C'est l'interface qui est utilisé aussi côté webview, il
+// faut donc mettre cette donnée dans la partie bothside
 // La donnée cachée, complète
 export interface FullEntry extends IEntry {
   entree_min: string;              // Version minuscules pour recherche
   entree_min_ra: string;           // Version rationalisée (sans accents) 
   categorie_formated?: string;     // Nom de la catégorie (résolu via Entry.get())
   genre_formated?: string;
+	definition_formated?: string;
 
 }
 
@@ -65,7 +68,8 @@ export class Entry extends UEntry {
 		const pItem = Object.assign(item, {
 			entree_min: entreeNormalized,
 			entree_min_ra: entreeRationalized,
-			genre_formated: this.genre(item.genre)
+			genre_formated: this.genre(item.genre),
+			definition_formated: item.definition // pour le moment
 		}) as FullEntry;
  
 		return pItem;

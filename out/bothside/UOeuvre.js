@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UOeuvre = void 0;
 const UniversalDicoElement_1 = require("./UniversalDicoElement");
 class UOeuvre extends UniversalDicoElement_1.UniversalDicoElement {
+    static klass;
     static names = {
         min: { sing: "œuvre", plur: "œuvres" },
         maj: { sing: "ŒUVRE", plur: "ŒUVRES" },

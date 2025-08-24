@@ -20,21 +20,6 @@ export abstract class CommonClassItem {
 //     return this._container || (this._container = document.querySelector('main#items'));
 //   }
 
-//   static get template(): HTMLTemplateElement | null {
-//     return this._template || (this._template = document.querySelector('template#item-template'));
-//   }
-
-//   static error(errorId: string): string {
-//     // Cette propriété doit être définie par chaque classe fille
-//     const errors = (this as any).ERRORS;
-//     return errors?.[errorId] || `Unknown error: ${errorId}`;
-//   }
-
-//   /**
-//    * Formate une propriété pour l'affichage
-//    * DOIT être surchargée par chaque classe fille
-//    */
-
 //  // Doit être écrasé par chaque classe fille (il semble que je doive
 //   // faire comme ça pour ne pas avoir d'erreur d'absence de méthode)
 //   protected static searchMatchingItems(searched: string): AnyCachedData[]{
@@ -134,76 +119,5 @@ export abstract class CommonClassItem {
 //     // Écouter les événements de saisie
 //     searchInput.addEventListener('input', filterEntries);
 //     searchInput.addEventListener('keyup', filterEntries);
-
-//     return this; // pour le chainage
-//   }
-//   /**
-//    * Récupère un élément par son ID
-//    * @param id - ID de l'élément à récupérer
-//    */
-//   static get(id: string): AnyCachedData | null {
-//     console.log("-> Oeuvre.get(%s)", id, this.cacheManager);
-//     return this.cacheManager.get(id);
-//   }
-
-//   /**
-//    * Récupère tous les éléments du cache
-//    */
-//   static getAll(): AnyCachedData[] {
-//     return this.cacheManager.getAll();
-//   }
-
-//   /**
-//    * Itère sur tous les éléments du cache
-//    * @param callback - Fonction appelée pour chaque élément
-//    */
-//   static forEach(callback: (item: AnyCachedData, id: string) => void): void {
-//     this.cacheManager.forEach(callback);
-//   }
-
-//   /**
-//    * Filtre les éléments du cache
-//    * @param predicate - Fonction de filtrage
-//    */
-//   static filter(predicate: (item: AnyCachedData, id: string) => boolean): AnyCachedData[] {
-//     return this.cacheManager.filter(predicate);
-//   }
-
-//   /**
-//    * Efface le cache
-//    */
-//   static clearCache(): void {
-//     this.cacheManager.clear();
-//   }
-
-//   /**
-//    * Vérifie si le cache est construit
-//    */
-//   static get isCacheBuilt(): boolean {
-//     return this.cacheManager.isBuilt;
-//   }
-
-//   /**
-//    * Retourne la taille du cache
-//    */
-//   static get cacheSize(): number {
-//     return this.cacheManager.size;
-//   }
-
-//   /**
-//    * Récupère le cache (pour compatibilité avec les tests existants)
-//    * @deprecated Utiliser les nouvelles méthodes get(), getAll(), etc.
-//    */
-//   static get searchCache(): AnyCachedData[] | null {
-//     const manager = this.cacheManager;
-//     return manager.isBuilt ? manager.getAll() : null;
-//   }
-
-//   /**
-//    * Post-traitement après affichage des éléments
-//    * Doit être surclassé par les méthodes propres aux différents panneaux
-//    */
-//   static afterDisplayItems(): boolean {
-//     return true;
-//   }
 }
+

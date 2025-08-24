@@ -1,0 +1,23 @@
+import { UEntry } from "../bothside/UEntry";
+import { UExemple } from "../bothside/UExemple";
+import { UOeuvre } from "../bothside/UOeuvre";
+import { Entry } from "./entries/Entry";
+import { Exemple } from "./exemples/Exemple";
+import { Oeuvre } from "./oeuvres/Oeuvre";
+import { FullEntry } from "../extension/models/Entry";
+import { FullOeuvre } from "../extension/models/Oeuvre";
+import { FullExemple } from "../extension/models/Exemple";
+
+type Tel_u = FullEntry | FullOeuvre | FullExemple;
+type Tel = typeof Entry | typeof Oeuvre | typeof Exemple;
+
+export abstract class ClientItem<Tel, Tel_u> {
+  data: Tel_u;
+  static klass: any;
+  static deserializeItems(items: string[]) {
+    return items.map( item => new this.klass(JSON.parse(item)));
+  }
+  constructor(itemData: Tel_u){
+    this.data = itemData;
+  } 
+}

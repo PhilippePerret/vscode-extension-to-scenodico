@@ -1,96 +1,14 @@
 "use strict";
 (() => {
-  // src/bothside/UniversalDicoElement.ts
-  var UniversalDicoElement = class {
-    // autorise `this[k]' dans le constructeur
-    static cache;
-    // Le constructeur reçoit toujours un objet contenant
-    // Les données. Dans un cas (extension) ce sont les données
-    // provenant de la base de données, dans l'autre cas (webview)
-    // ce sont les données cachées et préparées
-    constructor(data) {
-      for (const k in data) {
-        if (Object.prototype.hasOwnProperty.call(data, k)) {
-          this[k] = data[k];
-        }
-      }
+  // src/webviews/ClientItem.ts
+  var ClientItem = class {
+    data;
+    static klass;
+    static deserializeItems(items) {
+      return items.map((item) => new this.klass(JSON.parse(item)));
     }
-    static getDataSerialized() {
-      return this.cache.getDataSerialized();
-    }
-  };
-
-  // src/bothside/UEntry.ts
-  var UEntry = class extends UniversalDicoElement {
-    static names = {
-      min: { sing: "entr\xE9e", plur: "entr\xE9es" },
-      maj: { sing: "ENTR\xC9E", plur: "ENTR\xC9ES" },
-      tit: { sing: "Entr\xE9e", plur: "Entr\xE9es" },
-      tech: { sing: "entry", plur: "entries" }
-    };
-    static GENRES = {
-      "nm": "n.m.",
-      "nf": "n.f.",
-      "np": "n.pl.",
-      "vb": "verbe",
-      "adj": "adj.",
-      "adv": "adv."
-    };
-    static genre(id) {
-      return this.GENRES[id];
-    }
-    constructor(data) {
-      super(data);
-    }
-  };
-
-  // src/webviews/entries/Entry.ts
-  var Entry = class extends UEntry {
-    static minName = "entry";
-    // static readonly ERRORS = {
-    //   'no-items': 'Aucune entrée dans la base, bizarrement…',
-    // };
-    // }
-    // /**
-    //  * Recherche d'entrées par préfixe (optimisée)
-    //  * Méthode spécifique Entry
-    //  */
-    // protected static searchMatchingItems(prefix: string): CachedEntryData[] {
-    //   const prefixLower = StringNormalizer.toLower(prefix);
-    //   const prefixRa = StringNormalizer.rationalize(prefix);
-    //   return this.filter((entry: any) => {
-    //     return entry.entree_min.startsWith(prefixLower) || 
-    //            entry.entree_min_ra.startsWith(prefixRa);
-    //   }) as CachedEntryData[];
-    // }
-  };
-  window.Entry = Entry;
-
-  // src/bothside/UOeuvre.ts
-  var UOeuvre = class extends UniversalDicoElement {
-    static names = {
-      min: { sing: "\u0153uvre", plur: "\u0153uvres" },
-      maj: { sing: "\u0152UVRE", plur: "\u0152UVRES" },
-      tit: { sing: "\u0152uvre", plur: "\u0152uvres" },
-      tech: { sing: "oeuvre", plur: "oeuvres" }
-    };
-    // Mettre en forme les auteurs
-    static mef_auteurs(auteurs) {
-      const regauteurs = /(.+?) ([A-Z \-]+?)\(([HF]), (.+?)\)/;
-      while (auteurs.match(regauteurs)) {
-        auteurs = auteurs.replace(regauteurs, (_, prenom, nom, sexe, fonctions) => {
-          return `
-        <span class="prenom">${prenom}</span>
-        <span class="nom">${nom}</span>
-        <span class="sexe">${sexe}</span>
-        (<span class="fonctions">${fonctions}</span>)
-        `;
-        });
-      }
-      return auteurs.trim();
-    }
-    constructor(data) {
-      super(data);
+    constructor(itemData) {
+      this.data = itemData;
     }
   };
 
@@ -150,292 +68,11 @@
     );
   }
 
-  // src/webviews/oeuvres/Oeuvre.ts
-  var rpcOeuvre = createRpcClient();
-  rpcOeuvre.on("populate", (data) => {
-    console.log("[WEBVIEW] Peuplement du panneau avec les donn\xE9es", data);
-    return "J'ai bien peupl\xE9 le panneau";
-  });
-  var Oeuvre = class extends UOeuvre {
-    static minName = "oeuvre";
-    // private static readonly REG_ARTICLES = /\b(an|a|the|le|la|les|l'|de|du)\b/i ;
-    // // Cache manager spécifique aux oeuvres
-    // private static _cacheManagerInstance: CacheManager<OeuvreData, CachedOeuvreData> = new CacheManager();
-    // protected static get cacheManager(): CacheManager<OeuvreData, CachedOeuvreData> {
-    //   return this._cacheManagerInstance;
-    // }
-    // // pour test
-    // static get cacheManagerForced() { return this.cacheManager ; }
-    // static readonly ERRORS = {
-    //   'no-items': 'Aucune œuvre dans la base, bizarrement…',
-    // };
-    // /**
-    //  * Recherche d'œuvres par titre (optimisée)
-    //  * Méthode spécifique Oeuvre
-    //  */
-    // protected static searchMatchingItems(searchTerm: string): CachedOeuvreData[] {
-    //   const searchLower = StringNormalizer.toLower(searchTerm);
-    //   return this.filter((oeuvre: any) => {
-    //     return oeuvre.titresLookUp.some((titre: string) => {
-    //       const res: boolean = titre.startsWith(searchLower);
-    //       console.log("Le titre %s répond %s avec %s", oeuvre.titre_affiche, res, searchLower);
-    //       return res ;
-    //     });
-    //   }) as CachedOeuvreData[];
-    // }
-  };
-  window.Oeuvre = Oeuvre;
-
-  // src/webviews/InterCom-tests.ts
-  var vscode = acquireVsCodeApi();
-  window.addEventListener("message", (event) => {
-    const message = event.data;
-    switch (message.command) {
-      case "queryDOM":
-        queryDOMObject(message);
-        break;
-      case "queryDOMAll":
-        handleQueryDOMAll(message);
-        break;
-      case "queryDOMVisible":
-        handleQueryDOMVisible(message);
-        break;
-      case "typeInElement":
-        handleTypeInElement(message);
-        break;
-      case "clearAndTypeInElement":
-        handleClearAndTypeInElement(message);
-        break;
-      case "clearElement":
-        handleClearElement(message);
-        break;
-      case "getElementFromParent":
-        handleGetElementFromParent(message);
-        break;
-      case "executeScript":
-        handleExecuteScript(message);
-        break;
-      case "updateContent":
-        const targetElement = document.querySelector(message.target);
-        if (targetElement) {
-          targetElement.innerHTML = message.content;
-        }
-        break;
-    }
-  });
-  function queryDOMObject(message) {
-    const element = document.querySelector(message.selector);
-    let elementData = null;
-    if (element) {
-      elementData = {
-        tagName: element.tagName.toLowerCase(),
-        textContent: element.textContent || "",
-        classList: Array.from(element.classList),
-        id: element.id,
-        exists: true
-      };
-    }
-    vscode.postMessage({
-      command: "domQueryResult",
-      selector: message.selector,
-      element: elementData
-    });
-  }
-  function createElementData(element) {
-    return {
-      tagName: element.tagName.toLowerCase(),
-      textContent: element.textContent || "",
-      classList: Array.from(element.classList),
-      id: element.id,
-      exists: true
-    };
-  }
-  function handleQueryDOMAll(message) {
-    const elements = document.querySelectorAll(message.params.selector);
-    const elementsData = Array.from(elements).map(createElementData);
-    vscode.postMessage({
-      command: "queryDOMAllResult",
-      params: message.params,
-      result: elementsData
-    });
-  }
-  function handleQueryDOMVisible(message) {
-    const elements = document.querySelectorAll(message.params.selector);
-    const visibleElements = Array.from(elements).filter((element) => {
-      const style = window.getComputedStyle(element);
-      return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
-    });
-    const elementsData = visibleElements.map(createElementData);
-    vscode.postMessage({
-      command: "queryDOMVisibleResult",
-      params: message.params,
-      result: elementsData
-    });
-  }
-  function handleTypeInElement(message) {
-    const element = document.querySelector(message.params.selector);
-    if (element && (element.tagName === "INPUT" || element.tagName === "TEXTAREA")) {
-      element.value += message.params.text;
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    vscode.postMessage({
-      command: "typeInElementResult",
-      params: message.params,
-      result: null
-    });
-  }
-  function handleClearAndTypeInElement(message) {
-    const element = document.querySelector(message.params.selector);
-    if (element && (element.tagName === "INPUT" || element.tagName === "TEXTAREA")) {
-      element.value = message.params.text;
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    vscode.postMessage({
-      command: "clearAndTypeInElementResult",
-      params: message.params,
-      result: null
-    });
-  }
-  function handleClearElement(message) {
-    const element = document.querySelector(message.params.selector);
-    if (element && (element.tagName === "INPUT" || element.tagName === "TEXTAREA")) {
-      element.value = "";
-      element.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    vscode.postMessage({
-      command: "clearElementResult",
-      params: message.params,
-      result: null
-    });
-  }
-  function handleGetElementFromParent(message) {
-    const parentElement = document.getElementById(message.params.parentId);
-    let elementData = null;
-    if (parentElement) {
-      const element = parentElement.querySelector(message.params.selector);
-      if (element) {
-        elementData = createElementData(element);
-      }
-    }
-    vscode.postMessage({
-      command: "getElementFromParentResult",
-      params: message.params,
-      result: elementData
-    });
-  }
-  function handleExecuteScript(message) {
-    let result = null;
-    try {
-      result = (0, eval)(message.params.script);
-    } catch (error) {
-      console.error("Script execution error:", error);
-      result = error.message;
-    }
-    vscode.postMessage({
-      command: "executeScriptResult",
-      params: message.params,
-      result
-    });
-  }
-  document.addEventListener("DOMContentLoaded", () => {
-    document.addEventListener("keydown", (event) => {
-    });
-    const consoleInput = document.querySelector("#panel-console");
-    if (consoleInput) {
-      consoleInput.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          const command = consoleInput.value.trim();
-          if (command) {
-            vscode.postMessage({
-              command: "console-command",
-              value: command
-            });
-            consoleInput.value = "";
-          }
-        }
-      });
-    }
-  });
-
-  // src/bothside/UExemple.ts
-  var UExemple = class extends UniversalDicoElement {
-    static names = {
-      min: { sing: "exemple", plur: "exemples" },
-      maj: { sing: "EXEMPLE", plur: "EXEMPLES" },
-      tit: { sing: "Exemple", plur: "Exemples" },
-      tech: { sing: "exemple", plur: "exemples" }
-    };
-  };
-
   // src/webviews/exemples/Exemple.ts
-  var Exemple = class extends UExemple {
+  var Exemple = class _Exemple extends ClientItem {
+    static minName = "exemple";
+    static klass = _Exemple;
     //   static readonly minName = 'exemple';
-    //   // Cache manager spécifique aux exemples
-    //   private static _cacheManagerInstance: CacheManager<ExempleData, CachedExempleData> = new CacheManager();
-    //   protected static get cacheManager(): CacheManager<ExempleData, CachedExempleData> {
-    //     return this._cacheManagerInstance;
-    //   }
-    //   static readonly ERRORS = {
-    //     'no-items': 'Aucun exemple dans la base, bizarrement…',
-    //   };
-    //   static formateProp(prop: string, value: any): string {
-    //     return value || '';
-    //   }
-    //   /**
-    //    * Finalise la donnée pour le cache
-    //    */
-    //   static finalizeCachedItem(exemple: AnyCachedData): AnyCachedData {
-    //     // Résoudre le titre de l'œuvre
-    //     let oeuvreTitle: string | undefined;
-    //     if (exemple.oeuvre_id) {
-    //       try {
-    //         if (Oeuvre.isCacheBuilt) {
-    //           const oeuvre = Oeuvre.get(exemple.oeuvre_id);
-    //           oeuvreTitle = oeuvre ? oeuvre.titre_affiche : undefined;
-    //         }
-    //       } catch (error) {
-    //         console.warn(`[Exemple] Could not resolve oeuvre ${exemple.oeuvre_id}:`, error);
-    //       }
-    //     }
-    //     exemple.oeuvre_titre = oeuvreTitle ;
-    //     // Résoudre l'entrée associée
-    //     let entryEntree: string | undefined;
-    //     try {
-    //       if (Entry.isCacheBuilt) {
-    //         const entry = Entry.get(exemple.entry_id);
-    //         entryEntree = entry ? entry.entree : undefined;
-    //       }
-    //     } catch (error) {
-    //       console.warn(`[Exemple] Could not resolve entry ${exemple.entry_id}:`, error);
-    //     }
-    //     exemple.entry_entree = entryEntree ;
-    //     return exemple;
-    //   }
-    //   /**
-    //    * Prépare un exemple pour le cache de recherche
-    //    * SEULE méthode spécifique - le reste hérite de CommonClassItem !
-    //    * 
-    //    * TODO En fait, il faut une méthode en deux temps :
-    //    *  - le premier ne fait que mettre les données de l'item dans
-    //    *    la donnée cachée
-    //    *  - le deuxième temps, une fois toutes les données de tous les
-    //    *    types chargées, prépare les données spéciales qui ont besoin
-    //    *    des autres types.
-    //    */
-    //   static prepareItemForCache(exemple: ExempleData): CachedExempleData {
-    //     const contentNormalized = StringNormalizer.toLower(exemple.content);
-    //     const contentRationalized = StringNormalizer.rationalize(exemple.content);
-    //     return {
-    //       id: exemple.id,
-    //       content: exemple.content,
-    //       content_min: contentNormalized,
-    //       content_min_ra: contentRationalized,
-    //       oeuvre_id: exemple.oeuvre_id,
-    //       oeuvre_titre: undefined,
-    //       entry_id: exemple.entry_id,
-    //       entry_entree: undefined
-    //     };
-    //   }
     //   /**
     //    * Filtrage des exemples 
     //    * Méthode spécifique Exemple
@@ -492,20 +129,6 @@
     //     return this.filter((exemple: any) => exemple.oeuvre_id === oeuvreId) as CachedExempleData[];
     //   }
     //   /**
-    //    * Récupère tous les exemples associés à une entrée
-    //    * Méthode spécifique Exemple
-    //    */
-    //   static getByEntry(entryId: string): CachedExempleData[] {
-    //     return this.filter((exemple: any) => exemple.entry_id === entryId) as CachedExempleData[];
-    //   }
-    //   // Méthodes typées pour plus de confort (optionnel)
-    //   static get(id: string): CachedExempleData | null {
-    //     return super.get(id) as CachedExempleData | null;
-    //   }
-    //   static getAll(): CachedExempleData[] {
-    //     return super.getAll() as CachedExempleData[];
-    //   }
-    //   /**
     //    * Post-traitement après affichage : ajouter les titres des films
     //    * IMPORTANT: Cette méthode est appelée après l'affichage initial
     //    * 
@@ -555,6 +178,11 @@
     //     return true;
     //   }
   };
+  var RpcEx = createRpcClient();
+  RpcEx.on("populate", (params) => {
+    const items = Exemple.deserializeItems(params.data);
+    console.log("[CLIENT-Exemple] Items d\xE9s\xE9rialis\xE9s", items);
+  });
   window.Exemple = Exemple;
 })();
 //# sourceMappingURL=exemples-bundle.js.map

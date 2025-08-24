@@ -1,7 +1,9 @@
+import { Oeuvre } from '../extension/models/Oeuvre';
 import { UniversalDicoElement } from './UniversalDicoElement';
 
 export class UOeuvre extends UniversalDicoElement {
   [key: string]: any;
+  static klass: Oeuvre;
   
   static readonly names: {[k:string]: {sing:string, plur:string}} = {
       min: { sing: "œuvre", plur: "œuvres"},
