@@ -47,10 +47,12 @@ class RpcChannel {
         });
     }
     notify(method, params) {
+        console.log("Message reçu dans le 'notify' du RpcChannel", method, params);
         const notif = { method, params };
         this.sender(notif);
     }
     on(method, handler) {
+        console.log("Message reçu dans le 'on' du RpcChannel", method, handler);
         this.handlers.set(method, handler);
     }
 }

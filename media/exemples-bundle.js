@@ -65,7 +65,7 @@
         }
         Object.keys(data).forEach((prop) => {
           let value = data[prop];
-          value = String(value);
+          value = this.formateProp(item, prop, value);
           clone.querySelectorAll(`[data-prop="${prop}"]`).forEach((element) => {
             if (value.startsWith("<")) {
               element.innerHTML = value;
@@ -78,6 +78,12 @@
       });
       this.afterDisplayItems();
       this.observePanel();
+    }
+    // Si l'élément nécessite un traitement particulier de ses propriétés, il doit
+    // implémenter cette méthode
+    // (pour le moment, c'est seulement le cas pour les exemples)
+    static formateProp(item, prop, value) {
+      return String(value);
     }
     // Méthode appelée après l'affichage des éléments et avant
     // l'observation du panneau
@@ -164,23 +170,29 @@
       });
     }
     notify(method, params) {
+      console.log("Message re\xE7u dans le 'notify' du RpcChannel", method, params);
       const notif = { method, params };
       this.sender(notif);
     }
     on(method, handler) {
+      console.log("Message re\xE7u dans le 'on' du RpcChannel", method, handler);
       this.handlers.set(method, handler);
     }
   };
 
   // src/webviews/RpcClient.ts
   function createRpcClient() {
+    const vscode = acquireVsCodeApi();
     return new RpcChannel(
-      (msg) => window.parent.postMessage(msg, "*"),
+      // sender : envoie vers l'extension
+      (msg) => vscode.postMessage(msg),
+      // receiver : reçoit les messages de l'extension
       (cb) => window.addEventListener("message", (event) => cb(event.data))
     );
   }
 
   // src/webviews/models/Exemple.ts
+  var RpcEx = createRpcClient();
   var Exemple = class _Exemple extends ClientItem {
     static minName = "exemple";
     static klass = _Exemple;
@@ -196,9 +208,27 @@
     static initialize() {
       document.querySelector("#search-by-div").classList.remove("hidden");
     }
+    // Certaines propriétés reçoivent un traitement particulier :
+    // - l'entrée reçoit un lien pour rejoindre la définition dans le panneau des définitions
+    static formateProp(ex, prop, value) {
+      switch (prop) {
+        case "entree_formated":
+          return `<a data-type="entry" data-id="${ex.data.entry_id}">${value}</a>`;
+        default:
+          return String(value);
+      }
+    }
     static observePanel() {
       super.observePanel();
       this.menuModeFiltre.addEventListener("change", this.onChangeModeFiltre.bind(this));
+      this.container?.querySelectorAll("a[data-type][data-id]").forEach((link) => {
+        link.addEventListener("click", this.onClickLinkToEntry.bind(this, link));
+      });
+    }
+    static onClickLinkToEntry(link, _ev) {
+      const entryId = link.dataset.id;
+      console.log("[CLIENT] Demande d'affichage de l'entr\xE9e '%s'", entryId);
+      RpcEx.notify("display-entry", { entry_id: entryId });
     }
     static onChangeModeFiltre(_ev) {
       this.modeFiltre = this.menuModeFiltre.value;
@@ -299,7 +329,6 @@
       return exemplesFound;
     }
   };
-  var RpcEx = createRpcClient();
   RpcEx.on("populate", (params) => {
     const items = Exemple.deserializeItems(params.data);
     console.log("[CLIENT-Exemple] Items d\xE9s\xE9rialis\xE9s", items);

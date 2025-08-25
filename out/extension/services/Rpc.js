@@ -23,12 +23,26 @@ class Rpc {
 // Toutes les commandes de message doivent être définies ici
 class RpcEntry extends Rpc {
     panelName = 'panneau des entrées';
+    displayEntry(param) {
+        this.rpc.notify('display-entry', param);
+    }
 }
 class RpcOeuvre extends Rpc {
     panelName = 'panneau des œuvres';
 }
 class RpcExemple extends Rpc {
     panelName = 'panneau des exemples';
+    // Définir ici les méthodes messages avec le panneau des exemples
+    initialize(panel) {
+        super.initialize(panel);
+        console.log("-> initialisation du rpc et des méthodes", this.rpc);
+        this.rpc.on("display-entry", async (params) => {
+            console.log("[EXTENSION] Demande d'affichage de l'Entrée ", params.entry_id);
+            // return { ok: true };
+            // On le relaye au panneau des entrées
+            exports.CanalEntry.displayEntry(params);
+        });
+    }
 }
 // C'est cette constante exposée que l'extension doit appeler de partout
 /**

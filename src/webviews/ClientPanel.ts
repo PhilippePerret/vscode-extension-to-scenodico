@@ -32,7 +32,8 @@ export abstract class ClientPanel {
       // Régler les props
       Object.keys(data).forEach(prop => {
         let value = ((data as unknown) as Record<string, string>)[prop] as string;
-        value = String(value);
+        // value = String(value);
+        value = this.formateProp(item, prop, value);
         clone
           .querySelectorAll(`[data-prop="${prop}"]`)
           .forEach(element => {
@@ -54,6 +55,13 @@ export abstract class ClientPanel {
     this.observePanel();
   }
 
+  // Si l'élément nécessite un traitement particulier de ses propriétés, il doit
+  // implémenter cette méthode
+  // (pour le moment, c'est seulement le cas pour les exemples)
+  static formateProp(item: AnyElementClass, prop: string, value: string | number): string {
+    return String(value);
+  }
+  
   // Méthode appelée après l'affichage des éléments et avant
   // l'observation du panneau
   static afterDisplayItems():void {}

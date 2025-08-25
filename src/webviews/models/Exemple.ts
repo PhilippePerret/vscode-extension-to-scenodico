@@ -6,6 +6,8 @@ import { ClientItem } from '../ClientItem';
 import { ClientPanel } from '../ClientPanel';
 import { createRpcClient } from '../RpcClient';
 
+const RpcEx: RpcChannel = createRpcClient();
+
 export class Exemple extends ClientItem<UExemple, FullExemple> {
   static readonly minName = 'exemple';
   static readonly klass = Exemple;
@@ -33,10 +35,35 @@ class PanelExemple extends ClientPanel {
       .classList.remove('hidden');
   }
 
+  // Certaines propriétés reçoivent un traitement particulier :
+  // - l'entrée reçoit un lien pour rejoindre la définition dans le panneau des définitions
+  static formateProp(ex: Exemple, prop: string, value: string | number): string {
+
+    switch(prop) {
+      case 'entree_formated':
+        return `<a data-type="entry" data-id="${ex.data.entry_id}">${value}</a>`;
+      default: return String(value);
+    }
+  }
+  
   static observePanel(): void {
     super.observePanel();
     this.menuModeFiltre.addEventListener('change', this.onChangeModeFiltre.bind(this));
+    // On place un observateur sur les <a data-type data-id> pour qu'ils appellent
+    // les messages voulus
+    // data-type="entry" pour rejoindre les définitions (afficher la définition voulue)
+    // data-type="oeuvre" pour rejoindre l'œuvre voulue (l'afficher)
+    this.container?.querySelectorAll('a[data-type][data-id]').forEach(link => {
+      link.addEventListener('click', this.onClickLinkToEntry.bind(this, link));
+    });
   }
+  static onClickLinkToEntry(link: Element, _ev: any){
+    const entryId = (link as HTMLElement).dataset.id;
+    console.log("[CLIENT] Demande d'affichage de l'entrée '%s'", entryId);
+    RpcEx.notify('display-entry', {entry_id: entryId});
+  }
+
+
   static onChangeModeFiltre(_ev: any){
     this.modeFiltre = this.menuModeFiltre.value;
     console.info("Le mode de filtrage a été mis à '%s'", this.modeFiltre);
@@ -151,8 +178,6 @@ class PanelExemple extends ClientPanel {
  }
 }
 
-
-const RpcEx: RpcChannel = createRpcClient();
 RpcEx.on('populate', (params) => {
   const items = Exemple.deserializeItems(params.data);
   console.log("[CLIENT-Exemple] Items désérialisés", items);

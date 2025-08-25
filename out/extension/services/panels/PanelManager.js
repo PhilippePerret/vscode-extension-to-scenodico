@@ -32,10 +32,13 @@ class PanelManager {
     /**
      * Appelée après la fabrication des panneaux pour ouvrir les canaux Rpc
      */
-    static openRpcChanels() {
+    static async openRpcChanels() {
+        App_1.App.resetReadyCounter(3);
         Rpc_1.CanalEntry.initialize(this._panels[0].panel);
         Rpc_1.CanalOeuvre.initialize(this._panels[1].panel);
         Rpc_1.CanalExemple.initialize(this._panels[2].panel);
+        App_1.App.waitUntilReady();
+        console.log("[EXTENSION] Fin d'initialisaton des canaux RPC.");
     }
     /**
      * Appelée après la mise en cache des données pour peupler les panneaux.

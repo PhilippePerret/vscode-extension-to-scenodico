@@ -40,18 +40,23 @@
       });
     }
     notify(method, params) {
+      console.log("Message re\xE7u dans le 'notify' du RpcChannel", method, params);
       const notif = { method, params };
       this.sender(notif);
     }
     on(method, handler) {
+      console.log("Message re\xE7u dans le 'on' du RpcChannel", method, handler);
       this.handlers.set(method, handler);
     }
   };
 
   // src/webviews/RpcClient.ts
   function createRpcClient() {
+    const vscode = acquireVsCodeApi();
     return new RpcChannel(
-      (msg) => window.parent.postMessage(msg, "*"),
+      // sender : envoie vers l'extension
+      (msg) => vscode.postMessage(msg),
+      // receiver : reçoit les messages de l'extension
       (cb) => window.addEventListener("message", (event) => cb(event.data))
     );
   }
@@ -104,7 +109,7 @@
         }
         Object.keys(data).forEach((prop) => {
           let value = data[prop];
-          value = String(value);
+          value = this.formateProp(item, prop, value);
           clone.querySelectorAll(`[data-prop="${prop}"]`).forEach((element) => {
             if (value.startsWith("<")) {
               element.innerHTML = value;
@@ -117,6 +122,12 @@
       });
       this.afterDisplayItems();
       this.observePanel();
+    }
+    // Si l'élément nécessite un traitement particulier de ses propriétés, il doit
+    // implémenter cette méthode
+    // (pour le moment, c'est seulement le cas pour les exemples)
+    static formateProp(item, prop, value) {
+      return String(value);
     }
     // Méthode appelée après l'affichage des éléments et avant
     // l'observation du panneau

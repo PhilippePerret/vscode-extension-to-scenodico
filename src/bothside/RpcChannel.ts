@@ -65,11 +65,13 @@ export class RpcChannel {
   }
 
   notify(method: string, params?: any) {
+    console.log("Message reçu dans le 'notify' du RpcChannel", method, params);
     const notif: Notification = { method, params };
     this.sender(notif);
   }
 
   on(method: string, handler: (params: any) => any) {
+    console.log("Message reçu dans le 'on' du RpcChannel", method, handler);
     this.handlers.set(method, handler);
   }
 }

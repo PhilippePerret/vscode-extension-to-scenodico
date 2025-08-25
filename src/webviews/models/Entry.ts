@@ -48,5 +48,11 @@ RpcEntry.on('populate', (params) => {
   PanelEntry.populate(items);
 });
 
+RpcEntry.on('display-entry', (params) => {
+  console.log("[CLIENT] Je dois afficher l'entrée '%s'", params.entry_id, params);
+  const el = document.querySelector(`main#items > div[data-id="${params.entry_id}"]`) as HTMLElement;
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
 // Pour exposer globalement
 (window as any).Entry = Entry ;

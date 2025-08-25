@@ -28,6 +28,9 @@ abstract class Rpc {
 // Toutes les commandes de message doivent être définies ici
 class RpcEntry extends Rpc {
   protected panelName = 'panneau des entrées';
+  displayEntry(param: {entry_id: string}){
+    this.rpc.notify('display-entry', param);
+  }
   
 }
 
@@ -38,9 +41,19 @@ class RpcOeuvre extends Rpc {
 }
 class RpcExemple extends Rpc {
   protected panelName = 'panneau des exemples';
-
   // Définir ici les méthodes messages avec le panneau des exemples
-  
+
+  initialize(panel: vscode.WebviewPanel) {
+    super.initialize(panel);
+    console.log("-> initialisation du rpc et des méthodes", this.rpc);
+
+    this.rpc.on("display-entry", async (params: { entry_id: string }) => {
+      console.log("[EXTENSION] Demande d'affichage de l'Entrée ", params.entry_id);
+      // return { ok: true };
+      // On le relaye au panneau des entrées
+      CanalEntry.displayEntry(params);
+    });
+  }
 }
 
 
