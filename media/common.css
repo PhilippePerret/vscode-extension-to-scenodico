@@ -1,6 +1,7 @@
 a {
     cursor: pointer;
 }
+
 body {
     border: 1px solid;
     font-family: Charter;
@@ -124,10 +125,13 @@ footer {
 dictionnaire, le film dans les films et l'exemple dans les exemples */
 
 main#items .item {
-    border: 1px solid #CCC;
+    border: 2px solid #DDD;
     border-radius: 0.5em;
     margin-bottom: 1em;
     padding: 0.5em 1em;
+}
+main#items .item.selected {
+	border-color: blue;
 }
 /* L'élément principal, dans l'élément, i.e. l'entrée pour le dictionnaire,
 le titre affiché pour le film, l'entrée pour l'exemple (l'index ? aucun ?) */

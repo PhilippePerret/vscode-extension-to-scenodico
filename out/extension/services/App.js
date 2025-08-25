@@ -51,7 +51,7 @@ class App {
         this._context = context;
         PanelManager_1.PanelManager.openPanels(context);
         await this.loadAndCacheAllData();
-        PanelManager_1.PanelManager.openRpcChanels();
+        await PanelManager_1.PanelManager.openRpcChanels();
         await PanelManager_1.PanelManager.populatePanels();
     }
     /**

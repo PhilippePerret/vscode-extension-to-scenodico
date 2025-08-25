@@ -195,6 +195,37 @@
   var Entry = class _Entry extends ClientItem {
     static minName = "entry";
     static klass = _Entry;
+    static get(entryId) {
+      const entryData = PanelEntry.allItems.find((item) => item.data.id === entryId);
+      const entry = new _Entry(entryData.data);
+      console.log("Entr\xE9e trouv\xE9e : ", entry);
+      return entry;
+    }
+    constructor(data) {
+      super(data);
+      this.id = data.id;
+    }
+    _obj = void 0;
+    id;
+    scrollTo() {
+      this.isNotVisible && this.setVisible();
+      this.obj.scrollIntoView({ behavior: "auto", block: "center" });
+      return this;
+    }
+    select() {
+      this.obj.classList.add("selected");
+      return this;
+    }
+    setVisible() {
+      this.obj.style.display = "block";
+      this.data.display = "block";
+    }
+    get isNotVisible() {
+      return this.data.display === "none";
+    }
+    get obj() {
+      return this._obj || (this._obj = document.querySelector(`main#items > div[data-id="${this.id}"]`));
+    }
   };
   var PanelEntry = class extends ClientPanel {
     static minName = "entry";
@@ -211,6 +242,10 @@
         return entryData.entree_min.startsWith(prefixLower) || entryData.entree_min_ra.startsWith(prefixRa);
       });
     }
+    // Scroll jusqu'à l'élément et le sélectionne
+    static scrollToAndSelectEntry(entryId) {
+      Entry.get(entryId).scrollTo().select();
+    }
   };
   var RpcEntry = createRpcClient();
   RpcEntry.on("populate", (params) => {
@@ -219,9 +254,8 @@
     PanelEntry.populate(items);
   });
   RpcEntry.on("display-entry", (params) => {
-    console.log("[CLIENT] Je dois afficher l'entr\xE9e '%s'", params.entry_id, params);
-    const el = document.querySelector(`main#items > div[data-id="${params.entry_id}"]`);
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    console.log("[CLIENT] Je dois afficher l'entr\xE9e '%s'", params.entry_id);
+    PanelEntry.scrollToAndSelectEntry(params.entry_id);
   });
   window.Entry = Entry;
 })();
