@@ -13,6 +13,7 @@ body {
 header {
     position: sticky;
     top: 0;
+    height: 60px;
     background-color: #CCCCCC;
     border-bottom: 1px solid var(--vscode-sideBar-border);
     padding: 10px;
@@ -23,7 +24,8 @@ header {
 
 header h2 {
     position: absolute;
-    top: -4px; left: 4px;
+    top: 27px;
+    left: 4px;
     margin: 0;
     font-size: 50px;
     font-variant: small-caps;
@@ -57,7 +59,6 @@ header h2 {
     font-size: inherit;
     font-family: inherit;
 }
-
 
 .tips {
     font-size: 9px;

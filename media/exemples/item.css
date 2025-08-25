@@ -5,3 +5,7 @@ div.exemple {
   position:absolute;
   right: 1em;
 }
+
+h2.titre-oeuvre {
+  font-family: 'Arial Narrow', Arial, sans-serif ;
+}

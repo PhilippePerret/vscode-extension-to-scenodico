@@ -37,8 +37,10 @@ class Exemple extends UExemple_1.UExemple {
         App_1.App.incAndCheckReadyCounter();
     }
     static finalizeCachedItem(item) {
-        const entree = Entry_1.Entry.get(item.entry_id).entree_min;
-        const titre_oeuvre = Oeuvre_1.Oeuvre.get(item.oeuvre_id).titre_affiche;
+        const entry = Entry_1.Entry.get(item.entry_id);
+        const entree = entry.entree_min;
+        const oeuvre = Oeuvre_1.Oeuvre.get(item.oeuvre_id);
+        const titre_oeuvre = oeuvre.titre_affiche;
         // On remplace 'TITRE' dans le texte de l'exemple
         let content_formated;
         if (item.content.match(/TITRE/)) {
@@ -50,7 +52,9 @@ class Exemple extends UExemple_1.UExemple {
         return Object.assign(item, {
             oeuvre_titre: titre_oeuvre,
             entree_formated: entree,
-            content_formated: content_formated
+            content_formated: content_formated,
+            titresLookUp: oeuvre.titresLookUp,
+            entry4filter: entry.entree_min
         });
     }
     /**

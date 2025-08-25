@@ -54,6 +54,7 @@
       return this.itemTemplate.content.cloneNode(true);
     }
     static populate(items) {
+      this.container.innerHTML = "";
       items.forEach((item, index) => {
         const data = item.data;
         const clone = this.cloneItemTemplate();
@@ -75,7 +76,12 @@
         });
         this.container && this.container.appendChild(clone);
       });
+      this.afterDisplayItems();
       this.observePanel();
+    }
+    // Méthode appelée après l'affichage des éléments et avant
+    // l'observation du panneau
+    static afterDisplayItems() {
     }
     // Attention, certains panneaux ont leur propre méthode, qui peut 
     // aussi appeler celle-ci
@@ -174,59 +180,10 @@
     );
   }
 
-  // src/webviews/exemples/Exemple.ts
+  // src/webviews/models/Exemple.ts
   var Exemple = class _Exemple extends ClientItem {
     static minName = "exemple";
     static klass = _Exemple;
-    /**
-    //    * Post-traitement après affichage : ajouter les titres des films
-    //    * IMPORTANT: Cette méthode est appelée après l'affichage initial
-    //    * 
-    //    * Fonctionnement
-    //    * --------------
-    //    * Pour optimiser le traitement, en considérant qu'on peut avoir
-    //    * des milliers d'exemples, on ne passe pas par le DOM mais par
-    //    * les données (getAll). Puisqu'elles sont relevées dans l'ordre,
-    //    * c'est-à-dire par film, il suffit d'ajouter un titre au premier
-    //    * exemple qu'on trouve qui a un film différent du précédent.
-    //    * 
-    //    */
-    //   static afterDisplayItems(): boolean {
-    //     console.log('[EXEMPLES] afterDisplayItems - Grouping examples by oeuvre');
-    //     const mainConteneur = this.container as HTMLElement | null ;
-    //     if ( mainConteneur === null ) {
-    //       // Ça ne devrait jamais arriver
-    //       console.error('[EXEMPLES] No container found for grouping');
-    //       return false;
-    //     }
-    //     // Film courant
-    //     let currentOeuvreId = '' ;
-    //     this.cacheManager.getAll().forEach(exemple => {
-    //       if ( exemple.oeuvre_id === currentOeuvreId ) { return ; }
-    //       // Le film change, il faut mettre un titre avant
-    //       const domObj = document.querySelector(`main#items > div.item[data-id="${exemple.id}"]`) as HTMLDivElement ;
-    //       currentOeuvreId = exemple.oeuvre_id as string ;
-    //       const titleObj = document.createElement('h2');
-    //       const oeuvre = this.cacheManager.get(exemple.oeuvre_id as string);
-    //       console.log("oeuvre répondant à l'id %s", currentOeuvreId, oeuvre);
-    //       if ( !oeuvre ) {
-    //         console.log("Oeuvre introuvable, this.cacheManager vaut", this.cacheManager);
-    //         throw new Error("L'œuvre devrait être définie.");
-    //       }
-    //       const titre = oeuvre ? oeuvre.titre_affiche : "œuvre introuvable" ;
-    //       console.log("Titre", titre);
-    //       titleObj.innerHTML = titre ;
-    //        // Ajouter bouton d'ajout d'exemple
-    //       const btnAdd = document.createElement('button');
-    //       btnAdd.className = 'btn-add';
-    //       btnAdd.innerHTML = '<i class="codicon codicon-add"></i>';
-    //       btnAdd.setAttribute('data-oeuvre_id', currentOeuvreId);
-    //       titleObj.appendChild(btnAdd);
-    //       domObj.parentNode?.insertBefore(titleObj, domObj);
-    //     });
-    //     console.log('[EXEMPLES] Titling completed');
-    //     return true;
-    //   }
   };
   var PanelExemple = class extends ClientPanel {
     static minName = "exemple";
@@ -235,6 +192,7 @@
     static get allItems() {
       return Exemple.allItems;
     }
+    static BlockTitres = /* @__PURE__ */ new Map();
     static initialize() {
       document.querySelector("#search-by-div").classList.remove("hidden");
     }
@@ -248,6 +206,36 @@
     }
     static get menuModeFiltre() {
       return document.querySelector("#search-by");
+    }
+    /**
+     * Appelée après l'affichage des exemples, principalement pour
+     * afficher les titres des oeuvres dans le DOM.
+     */
+    static afterDisplayItems() {
+      super.afterDisplayItems();
+      let currentOeuvreId = "";
+      this.allItems.forEach((item) => {
+        const ditem = item.data;
+        if (ditem.oeuvre_id === currentOeuvreId) {
+          return;
+        }
+        currentOeuvreId = ditem.oeuvre_id;
+        const obj = document.createElement("h2");
+        obj.className = "titre-oeuvre";
+        const spanTit = document.createElement("span");
+        spanTit.className = "titre";
+        spanTit.innerHTML = ditem.oeuvre_titre;
+        obj.appendChild(spanTit);
+        const titre = {
+          id: ditem.oeuvre_id,
+          obj,
+          titre: ditem.oeuvre_titre,
+          display: "block"
+        };
+        this.BlockTitres.set(titre.id, titre);
+        const firstEx = document.querySelector(`main#items > div[data-id="${ditem.id}"]`);
+        this.container?.insertBefore(obj, firstEx);
+      });
     }
     /**
      * Filtrage des exemples 
@@ -266,35 +254,50 @@
      * En mode "Contenu", la recherche se fait sur le contenu, partout
      * et sur toutes les entrées.
      * 
-     * QUESTION Comment faire la différence entre les différents modes
-     * de recherche ? peut-être avec un préfix ('content' pour recher-
-     * che sur le contenu, 'dico:' ou 'entree:' pour la recherche sur 
-     * les entrées et rien pour la recherche sur le film)
-     * => Un menu
      */
     static searchMatchingItems(searched) {
       const searchLow = StringNormalizer.toLower(searched);
       const searchRa = StringNormalizer.rationalize(searched);
+      let exemplesFound;
       switch (this.modeFiltre) {
         case "by-title":
-          return this.filter((exData) => {
+          exemplesFound = this.filter((exData) => {
             return exData.titresLookUp.some((titre) => {
+              console.log("titre = ", titre);
               return titre.substring(0, searchLow.length) === searchLow;
             });
           });
+          break;
         case "by-entry":
-          return this.filter((exData) => {
-            const len = searchLow.length;
-            const seg = exData.entree4filter.substring(0, len);
+          exemplesFound = this.filter((exData) => {
+            const seg = exData.entry4filter.substring(0, searchLow.length);
             return seg === searchLow || seg === searchRa;
           });
+          break;
         case "by-content":
-          return this.filter((exData) => {
+          exemplesFound = this.filter((exData) => {
             return exData.content_min.includes(searchLow) || exData.content_min_ra.includes(searchRa);
           });
+          break;
         default:
           return [];
       }
+      const titres2aff = /* @__PURE__ */ new Map();
+      exemplesFound.forEach((ex) => {
+        if (titres2aff.has(ex.data.oeuvre_id)) {
+          return;
+        }
+        titres2aff.set(ex.data.oeuvre_id, true);
+      });
+      this.BlockTitres.forEach((btitre) => {
+        const dispWanted = titres2aff.has(btitre.id) ? "block" : "none";
+        if (btitre.display === dispWanted) {
+          return;
+        }
+        btitre.display = dispWanted;
+        btitre.obj.style.display = dispWanted;
+      });
+      return exemplesFound;
     }
   };
   var RpcEx = createRpcClient();

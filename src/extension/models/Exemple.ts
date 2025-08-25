@@ -20,7 +20,8 @@ export interface FullExemple extends IExemple {
   content_min_ra: string;          // Version rationalisée (sans accents)
   oeuvre_titre: string;            // Titre de l'oeuvre
 	entree_formated: string;
-	oeuvre_formated: string; 
+	titresLookup: string[];			// pour le filtrage par titre d'oeuvre
+	entry4filter: string;				// version optimisée pour le filtrage
 }
 
 // La donnée telle qu'elle sera en cache
@@ -59,8 +60,10 @@ export class Exemple extends UExemple {
 		App.incAndCheckReadyCounter();
 	}
 	private static finalizeCachedItem(item: FullExemple): FullExemple {
-		const entree = Entry.get(item.entry_id).entree_min;
-		const titre_oeuvre = Oeuvre.get(item.oeuvre_id).titre_affiche;
+		const entry = Entry.get(item.entry_id);
+		const entree = entry.entree_min;
+		const oeuvre = Oeuvre.get(item.oeuvre_id);
+		const titre_oeuvre = oeuvre.titre_affiche;
 		// On remplace 'TITRE' dans le texte de l'exemple
 		let content_formated: string;
 		if (item.content.match(/TITRE/) ){
@@ -71,7 +74,9 @@ export class Exemple extends UExemple {
 		return Object.assign(item, {
 			oeuvre_titre: titre_oeuvre,
 			entree_formated: entree,
-			content_formated: content_formated 
+			content_formated: content_formated,
+			titresLookUp: oeuvre.titresLookUp,
+			entry4filter: entry.entree_min 
 		});
 	}
 

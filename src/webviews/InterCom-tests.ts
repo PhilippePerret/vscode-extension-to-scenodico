@@ -1,7 +1,7 @@
 // Common TypeScript for all panels
-import { Entry } from './entries/Entry';
-import { Oeuvre } from './oeuvres/Oeuvre';
-import { Exemple } from './exemples/Exemple';
+import { Entry } from './models/Entry';
+import { Oeuvre } from './models/Oeuvre';
+import { Exemple } from './models/Exemple';
 
 
 type CommonClassItem = typeof Entry | typeof Oeuvre | typeof Exemple;

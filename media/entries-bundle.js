@@ -54,6 +54,7 @@
       return this.itemTemplate.content.cloneNode(true);
     }
     static populate(items) {
+      this.container.innerHTML = "";
       items.forEach((item, index) => {
         const data = item.data;
         const clone = this.cloneItemTemplate();
@@ -75,7 +76,12 @@
         });
         this.container && this.container.appendChild(clone);
       });
+      this.afterDisplayItems();
       this.observePanel();
+    }
+    // Méthode appelée après l'affichage des éléments et avant
+    // l'observation du panneau
+    static afterDisplayItems() {
     }
     // Attention, certains panneaux ont leur propre méthode, qui peut 
     // aussi appeler celle-ci
@@ -174,7 +180,7 @@
     );
   }
 
-  // src/webviews/entries/Entry.ts
+  // src/webviews/models/Entry.ts
   var Entry = class _Entry extends ClientItem {
     static minName = "entry";
     static klass = _Entry;

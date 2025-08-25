@@ -1,6 +1,6 @@
-import { Entry } from "./entries/Entry";
-import { Exemple } from "./exemples/Exemple";
-import { Oeuvre } from "./oeuvres/Oeuvre";
+import { Entry } from "./models/Entry";
+import { Exemple } from "./models/Exemple";
+import { Oeuvre } from "./models/Oeuvre";
 
 type AnyElementClass = Entry | Oeuvre | Exemple;
 
@@ -20,6 +20,7 @@ export abstract class ClientPanel {
     return this.itemTemplate!.content.cloneNode(true) as DocumentFragment;
   }
   static populate(items: AnyElementClass[]): void {
+    (this.container as HTMLDivElement).innerHTML = '';
     items.forEach((item: AnyElementClass, index: number) => {
       const data = item.data;
       const clone = this.cloneItemTemplate() as DocumentFragment;
@@ -47,11 +48,15 @@ export abstract class ClientPanel {
     });
 
     // TODO Ici, plus tard, on pourra appeler afterDisplayItems
+    this.afterDisplayItems();
 
     // Pour observer le panneau (les boutons, le champ de filtre, etc.)
     this.observePanel();
   }
 
+  // Méthode appelée après l'affichage des éléments et avant
+  // l'observation du panneau
+  static afterDisplayItems():void {}
 
   // Attention, certains panneaux ont leur propre méthode, qui peut 
   // aussi appeler celle-ci

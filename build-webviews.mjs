@@ -13,9 +13,9 @@ import { join, dirname } from 'path';
 
 // Configuration des points d'entrée pour chaque webview
 const webviewEntries = {
-  'entries': 'src/webviews/entries/Entry.ts',
-  'oeuvres': 'src/webviews/oeuvres/Oeuvre.ts',
-  'exemples': 'src/webviews/exemples/Exemple.ts'
+  'entries': 'src/webviews/models/Entry.ts',
+  'oeuvres': 'src/webviews/models/Oeuvre.ts',
+  'exemples': 'src/webviews/models/Exemple.ts'
 };
 
 

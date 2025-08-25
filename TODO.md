@@ -1,14 +1,19 @@
 # Todo list
 
-* Supprimer le texte "Chargement des items" dans tous les panneaux
-* Préparer les valeurs pour le filtrage des exemples
-  - titresLookup
-  - entry4filter (pas d'espaces, tout minuscule, rationnlisé)
-  - content_min
-  - content_min_ra
+* Tenir compte des titres dans le filtrage des exemples
+  - en mode par oeuvre, laisser simplement le titre pour les oeuvres trouvés
+  - en mode entrée et exemple, laisser le titre quand un exemple est choisi
+    => un exemple choisi => prendre son titre => afficher son titre
+    => donc faire un tableau des titres pour conserver leur état 
+    interface Titre {
+      obj: HTMLDivElement,
+      id:  string;
+    }
+* Afficher correctement les exemples :
+  - l'indice plus discret, à droite
+  - l'entrée en exergue (je ne la vois même pas, actuellement)
 * Finaliser le filtrage des exemples
-* Mettre les titres dans les exemples
-* Faire passer l'application
+* Dans le panneau exemple, quand on clique sur un titre, on doit le rejoindre dans la fenêtre des oeuvres.
 
 
 * [tout repenser](#version-2)

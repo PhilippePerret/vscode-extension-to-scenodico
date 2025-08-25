@@ -10,63 +10,21 @@ export class Exemple extends ClientItem<UExemple, FullExemple> {
   static readonly minName = 'exemple';
   static readonly klass = Exemple;
 
-   /**
-//    * Post-traitement après affichage : ajouter les titres des films
-//    * IMPORTANT: Cette méthode est appelée après l'affichage initial
-//    * 
-//    * Fonctionnement
-//    * --------------
-//    * Pour optimiser le traitement, en considérant qu'on peut avoir
-//    * des milliers d'exemples, on ne passe pas par le DOM mais par
-//    * les données (getAll). Puisqu'elles sont relevées dans l'ordre,
-//    * c'est-à-dire par film, il suffit d'ajouter un titre au premier
-//    * exemple qu'on trouve qui a un film différent du précédent.
-//    * 
-//    */
-//   static afterDisplayItems(): boolean {
-//     console.log('[EXEMPLES] afterDisplayItems - Grouping examples by oeuvre');
-    
-//     const mainConteneur = this.container as HTMLElement | null ;
-    
-//     if ( mainConteneur === null ) {
-//       // Ça ne devrait jamais arriver
-//       console.error('[EXEMPLES] No container found for grouping');
-//       return false;
-//     }
-//     // Film courant
-//     let currentOeuvreId = '' ;
-//     this.cacheManager.getAll().forEach(exemple => {
-//       if ( exemple.oeuvre_id === currentOeuvreId ) { return ; }
-//       // Le film change, il faut mettre un titre avant
-//       const domObj = document.querySelector(`main#items > div.item[data-id="${exemple.id}"]`) as HTMLDivElement ;
-//       currentOeuvreId = exemple.oeuvre_id as string ;
-//       const titleObj = document.createElement('h2');
-//       const oeuvre = this.cacheManager.get(exemple.oeuvre_id as string);
-//       console.log("oeuvre répondant à l'id %s", currentOeuvreId, oeuvre);
-//       if ( !oeuvre ) {
-//         console.log("Oeuvre introuvable, this.cacheManager vaut", this.cacheManager);
-//         throw new Error("L'œuvre devrait être définie.");
-//       }
-//       const titre = oeuvre ? oeuvre.titre_affiche : "œuvre introuvable" ;
-//       console.log("Titre", titre);
-//       titleObj.innerHTML = titre ;
-//        // Ajouter bouton d'ajout d'exemple
-//       const btnAdd = document.createElement('button');
-//       btnAdd.className = 'btn-add';
-//       btnAdd.innerHTML = '<i class="codicon codicon-add"></i>';
-//       btnAdd.setAttribute('data-oeuvre_id', currentOeuvreId);
-//       titleObj.appendChild(btnAdd);
-//       domObj.parentNode?.insertBefore(titleObj, domObj);
-//     });
-//     console.log('[EXEMPLES] Titling completed');
-//     return true;
-//   }
 }
+
+interface OTitre {
+  id: string;
+  obj: HTMLDivElement;        // l'objet complet du titre
+  display: 'block' | 'none';  // pour savoir s'il est affiché ou non
+  titre: string;              // le titre affiché
+}
+
 class PanelExemple extends ClientPanel {
   static readonly minName = 'exemple';
   static titName = 'Exemple';
   static modeFiltre = 'by-title';
   static get allItems() { return Exemple.allItems; }
+  static BlockTitres: Map<string, OTitre> = new Map();
 
   static initialize(){
     // On montre le menu qui permet de choisir le mode de filtrage de
@@ -86,6 +44,40 @@ class PanelExemple extends ClientPanel {
   static get menuModeFiltre(){return (document.querySelector('#search-by') as HTMLSelectElement);}
   
   /**
+   * Appelée après l'affichage des exemples, principalement pour
+   * afficher les titres des oeuvres dans le DOM.
+   */
+  static afterDisplayItems(){
+    super.afterDisplayItems(); // on ne sait jamais 
+    // Principe : on boucle sur tous les éléments (qui sont forcément 
+    // classés par oeuvre) et dès qu'on passe à une autre oeuvre on
+    // crée un nouveau titre.
+    let currentOeuvreId: string = ''; // le titre couramment affiché
+    this.allItems.forEach((item: Exemple): undefined => {
+      const ditem = item.data;
+      if ( ditem.oeuvre_id === currentOeuvreId ) { return ; }
+      // --- NOUVEAU TITRE ---
+      currentOeuvreId = ditem.oeuvre_id;
+      const obj = document.createElement('h2');
+      obj.className = 'titre-oeuvre';
+      const spanTit = document.createElement('span');
+      spanTit.className = 'titre';
+      spanTit.innerHTML = ditem.oeuvre_titre;
+      obj.appendChild(spanTit);
+      const titre = {
+        id: ditem.oeuvre_id,
+        obj: obj,
+        titre: ditem.oeuvre_titre,
+        display: 'block'
+      } as OTitre;
+      // On consigne ce titre pour pouvoir le manipuler facilement
+      this.BlockTitres.set(titre.id, titre);
+
+      const firstEx = document.querySelector(`main#items > div[data-id="${ditem.id}"]`);
+      this.container?.insertBefore(obj, firstEx);
+    });
+  }
+  /**
    * Filtrage des exemples 
    * Méthode spécifique Exemple
    * 
@@ -102,37 +94,60 @@ class PanelExemple extends ClientPanel {
    * En mode "Contenu", la recherche se fait sur le contenu, partout
    * et sur toutes les entrées.
    * 
-   * QUESTION Comment faire la différence entre les différents modes
-   * de recherche ? peut-être avec un préfix ('content' pour recher-
-   * che sur le contenu, 'dico:' ou 'entree:' pour la recherche sur 
-   * les entrées et rien pour la recherche sur le film)
-   * => Un menu
    */
   public static searchMatchingItems(searched: string): Exemple[] {
     const searchLow = StringNormalizer.toLower(searched);
     const searchRa = StringNormalizer.rationalize(searched); 
+    let exemplesFound: Exemple[];
 
     switch (this.modeFiltre) {
+
       case 'by-title':
-        return this.filter((exData: {[k:string]: any}) => {
+        // Filtrage par titre d'œuvre (défaut)
+        exemplesFound = this.filter((exData: {[k:string]: any}) => {
           return exData.titresLookUp.some((titre: string) => {
             return titre.substring(0, searchLow.length) === searchLow;
           });
         }) as Exemple[];
+        break;
       case 'by-entry':
-        return this.filter((exData: {[k:string]: any}) => {
-          const len = searchLow.length;
-          const seg = exData.entree4filter.substring(0, len);
+        // Filtrage pour entrée
+        exemplesFound = this.filter((exData: {[k:string]: any}) => {
+          const seg = exData.entry4filter.substring(0, searchLow.length);
           return seg === searchLow || seg === searchRa;
         }) as Exemple[];
+        break;
       case 'by-content':
-        return this.filter((exData: {[k:string]: any}) => {
+         exemplesFound = this.filter((exData: {[k:string]: any}) => {
           return exData.content_min.includes(searchLow) ||
             exData.content_min_ra.includes(searchRa);
         }) as Exemple[];
+        break;
       default:
         return [] ; // ne doit jamais être atteint, juste pour lint
     }
+    // Traitement des titres
+    // On par du principe que les titres des exemples choisis doivent
+    // être affichés (note : je pense que ça peut être une méthode
+    // communes à tous les filtrages)
+    
+    // Pour consigner les titres modifiés
+    const titres2aff: Map<string, boolean> = new Map();
+
+    exemplesFound.forEach((ex: Exemple) => {
+      // Si le titre a déjà été traité, on passe au suivant
+      if ( titres2aff.has(ex.data.oeuvre_id)) { return ; }
+      titres2aff.set(ex.data.oeuvre_id, true);
+    });
+    // Ici, on a dans titres2aff les titres à afficher
+    this.BlockTitres.forEach((btitre:OTitre) => {
+      const dispWanted = titres2aff.has(btitre.id) ? 'block' : 'none';
+      if ( btitre.display === dispWanted) { return ; }
+      btitre.display = dispWanted ;
+      btitre.obj.style.display = dispWanted;
+    });
+
+    return exemplesFound;
  }
 }
 

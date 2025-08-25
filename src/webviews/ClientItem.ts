@@ -1,9 +1,9 @@
 import { UEntry } from "../bothside/UEntry";
 import { UExemple } from "../bothside/UExemple";
 import { UOeuvre } from "../bothside/UOeuvre";
-import { Entry } from "./entries/Entry";
-import { Exemple } from "./exemples/Exemple";
-import { Oeuvre } from "./oeuvres/Oeuvre";
+import { Entry } from "./models/Entry";
+import { Exemple } from "./models/Exemple";
+import { Oeuvre } from "./models/Oeuvre";
 import { FullEntry } from "../extension/models/Entry";
 import { FullOeuvre } from "../extension/models/Oeuvre";
 import { FullExemple } from "../extension/models/Exemple";
