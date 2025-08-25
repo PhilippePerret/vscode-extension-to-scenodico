@@ -263,7 +263,6 @@
         case "by-title":
           exemplesFound = this.filter((exData) => {
             return exData.titresLookUp.some((titre) => {
-              console.log("titre = ", titre);
               return titre.substring(0, searchLow.length) === searchLow;
             });
           });

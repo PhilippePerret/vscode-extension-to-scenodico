@@ -1,17 +1,6 @@
 # Todo list
 
-* Tenir compte des titres dans le filtrage des exemples
-  - en mode par oeuvre, laisser simplement le titre pour les oeuvres trouvés
-  - en mode entrée et exemple, laisser le titre quand un exemple est choisi
-    => un exemple choisi => prendre son titre => afficher son titre
-    => donc faire un tableau des titres pour conserver leur état 
-    interface Titre {
-      obj: HTMLDivElement,
-      id:  string;
-    }
-* Afficher correctement les exemples :
-  - l'indice plus discret, à droite
-  - l'entrée en exergue (je ne la vois même pas, actuellement)
+* Quand on clique sur l'entrée dans l'exemple, on rejoint la définition (message)
 * Finaliser le filtrage des exemples
 * Dans le panneau exemple, quand on clique sur un titre, on doit le rejoindre dans la fenêtre des oeuvres.
 
