@@ -4,7 +4,7 @@ exports.Entry = void 0;
 const UEntry_1 = require("../../bothside/UEntry");
 const UniversalCacheManager_1 = require("../../bothside/UniversalCacheManager");
 const App_1 = require("../services/App");
-const CacheTypes_1 = require("../services/cache/CacheTypes");
+const StringUtils_1 = require("../../bothside/StringUtils");
 // Classe de la donnée mise en cache
 class Entry extends UEntry_1.UEntry {
     static panelId = 'entries';
@@ -37,8 +37,8 @@ class Entry extends UEntry_1.UEntry {
      * données (voir la méthode finalizeCachedData pour ça).
      */
     static prepareItemForCache(item) {
-        const entreeNormalized = CacheTypes_1.StringNormalizer.toLower(item.entree);
-        const entreeRationalized = CacheTypes_1.StringNormalizer.rationalize(item.entree);
+        const entreeNormalized = StringUtils_1.StringNormalizer.toLower(item.entree);
+        const entreeRationalized = StringUtils_1.StringNormalizer.rationalize(item.entree);
         // On finalise la donnée en cache
         const pItem = Object.assign(item, {
             display: 'block',

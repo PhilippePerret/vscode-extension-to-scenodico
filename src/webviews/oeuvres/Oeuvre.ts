@@ -1,11 +1,10 @@
-// import '../InterCom-tests';
 import { UOeuvre } from '../../bothside/UOeuvre';
 import { RpcChannel } from '../../bothside/RpcChannel';
 import { createRpcClient } from '../RpcClient';
 import { ClientItem } from '../ClientItem';
 import { ClientPanel } from '../ClientPanel';
 import { FullOeuvre } from '../../extension/models/Oeuvre';
-import { StringNormalizer } from '../../extension/services/cache/CacheTypes';
+import { StringNormalizer } from '../../bothside/StringUtils';
 
 export class Oeuvre extends ClientItem<UOeuvre, FullOeuvre> {
   static readonly minName = 'oeuvre';
@@ -21,7 +20,7 @@ class PanelOeuvre extends ClientPanel {
     const searchLower = StringNormalizer.toLower(searched);
     return this.filter((oeuvreData: {[k:string]: any}) => {
       return oeuvreData.titresLookUp.some((titre: string) => {
-        return titre.startsWith(searchLower);
+        return titre.substring(0, searchLower.length) === searchLower;
       });
     }) as Oeuvre[];
   }

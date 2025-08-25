@@ -102,7 +102,8 @@
           mainElement.setAttribute("data-index", index.toString());
         }
         Object.keys(data).forEach((prop) => {
-          const value = data[prop];
+          let value = data[prop];
+          value = String(value);
           clone.querySelectorAll(`[data-prop="${prop}"]`).forEach((element) => {
             if (value.startsWith("<")) {
               element.innerHTML = value;
@@ -115,6 +116,8 @@
       });
       this.observePanel();
     }
+    // Attention, certains panneaux ont leur propre méthode, qui peut 
+    // aussi appeler celle-ci
     static observePanel() {
       const Input = this.searchInput;
       Input.addEventListener("input", this.filterItems.bind(this));
@@ -154,7 +157,7 @@
     }
   };
 
-  // src/extension/services/cache/CacheTypes.ts
+  // src/bothside/StringUtils.ts
   var StringNormalizer = class {
     /**
      * Normalise une chaîne en minuscules
@@ -186,7 +189,7 @@
       const searchLower = StringNormalizer.toLower(searched);
       return this.filter((oeuvreData) => {
         return oeuvreData.titresLookUp.some((titre) => {
-          return titre.startsWith(searchLower);
+          return titre.substring(0, searchLower.length) === searchLower;
         });
       });
     }

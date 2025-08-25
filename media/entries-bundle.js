@@ -1,6 +1,6 @@
 "use strict";
 (() => {
-  // src/extension/services/cache/CacheTypes.ts
+  // src/bothside/StringUtils.ts
   var StringNormalizer = class {
     /**
      * Normalise une chaîne en minuscules
@@ -63,7 +63,8 @@
           mainElement.setAttribute("data-index", index.toString());
         }
         Object.keys(data).forEach((prop) => {
-          const value = data[prop];
+          let value = data[prop];
+          value = String(value);
           clone.querySelectorAll(`[data-prop="${prop}"]`).forEach((element) => {
             if (value.startsWith("<")) {
               element.innerHTML = value;
@@ -76,6 +77,8 @@
       });
       this.observePanel();
     }
+    // Attention, certains panneaux ont leur propre méthode, qui peut 
+    // aussi appeler celle-ci
     static observePanel() {
       const Input = this.searchInput;
       Input.addEventListener("input", this.filterItems.bind(this));

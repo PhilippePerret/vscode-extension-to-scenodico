@@ -2,7 +2,7 @@ import { UEntry } from '../../bothside/UEntry';
 import { UniversalCacheManager } from '../../bothside/UniversalCacheManager';
 import { EntryDb } from '../db/EntryDb';
 import { App } from '../services/App';
-import { StringNormalizer } from '../services/cache/CacheTypes';
+import { StringNormalizer } from '../../bothside/StringUtils';
 
 // Forme de la donnée persistante (en tout cas celle
 // qui sera envoyée au cache)

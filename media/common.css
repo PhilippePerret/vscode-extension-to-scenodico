@@ -23,13 +23,14 @@ header {
 
 header h2 {
     position: absolute;
-    top: -7px; left: 4px;
+    top: -4px; left: 4px;
     margin: 0;
-    font-size: 14px;
+    font-size: 50px;
     font-variant: small-caps;
     color: #339ecd;
-    opacity: 0.5;
+    opacity: 0.3;
     font-style: italic;
+		z-index: -1;
 }
 
 #search-bar {
@@ -48,6 +49,13 @@ header h2 {
 }
 #search-input:before {
     content: '🔍';
+}
+#search-by-div {
+    font-size: 0.8em;
+}
+#search-by-div select {
+    font-size: inherit;
+    font-family: inherit;
 }
 
 

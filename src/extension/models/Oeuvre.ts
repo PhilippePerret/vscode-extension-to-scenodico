@@ -1,7 +1,7 @@
 import { UniversalCacheManager } from '../../bothside/UniversalCacheManager';
 import { UOeuvre } from '../../bothside/UOeuvre';
 import { App } from '../services/App';
-import { StringNormalizer } from '../services/cache/CacheTypes';
+import { StringNormalizer } from '../../bothside/StringUtils';
 
 export interface IOeuvre {
 	id: string;

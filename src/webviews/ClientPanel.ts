@@ -30,7 +30,8 @@ export abstract class ClientPanel {
       }
       // Régler les props
       Object.keys(data).forEach(prop => {
-        const value = ((data as unknown) as Record<string, string>)[prop] as string;
+        let value = ((data as unknown) as Record<string, string>)[prop] as string;
+        value = String(value);
         clone
           .querySelectorAll(`[data-prop="${prop}"]`)
           .forEach(element => {
@@ -52,6 +53,8 @@ export abstract class ClientPanel {
   }
 
 
+  // Attention, certains panneaux ont leur propre méthode, qui peut 
+  // aussi appeler celle-ci
   static observePanel(): void {
    // Écouter le champ de filtre en haut des panneaux
     const Input = this.searchInput as HTMLInputElement;

@@ -1,7 +1,7 @@
-// import '../InterCom-tests';
 import { RpcChannel } from '../../bothside/RpcChannel';
 import { UExemple } from '../../bothside/UExemple';
 import { FullExemple } from '../../extension/models/Exemple';
+import { StringNormalizer } from '../../bothside/StringUtils';
 import { ClientItem } from '../ClientItem';
 import { ClientPanel } from '../ClientPanel';
 import { createRpcClient } from '../RpcClient';
@@ -10,66 +10,7 @@ export class Exemple extends ClientItem<UExemple, FullExemple> {
   static readonly minName = 'exemple';
   static readonly klass = Exemple;
 
-//   static readonly minName = 'exemple';
-  
-//   /**
-//    * Filtrage des exemples 
-//    * Méthode spécifique Exemple
-//    * 
-//    * En mode "normal"
-//    * Le filtrage, sauf indication contraire, se fait par rapport aux
-//    * titres de film. Le mécanisme est le suivant : l'user tape un
-//    * début de titres de film. On en déduit les titres grâce à la
-//    * méthode de la classe Oeuvre. On prend l'identifiant et on 
-//    * affiche tous les exemples du film voulu.
-//    * 
-//    * En mode "Entrée", l'utilisateur tape une entrée du dictionnaire
-//    * et la méthode renvoie tous les exemples concernant cette entrée.
-//    * 
-//    * En mode "Contenu", la recherche se fait sur le contenu, partout
-//    * et sur toutes les entrées.
-//    * 
-//    * QUESTION Comment faire la différence entre les différents modes
-//    * de recherche ? peut-être avec un préfix ('content' pour recher-
-//    * che sur le contenu, 'dico:' ou 'entree:' pour la recherche sur 
-//    * les entrées et rien pour la recherche sur le film)
-//    */
-//   protected static searchMatchingItems(searched: string): CachedExempleData[] {
-//     const searchLower = StringNormalizer.toLower(searched);
-//     const searchRa = StringNormalizer.rationalize(searched);
-//     const mode: string = 'by oeuvre' ; // doit pouvoir être déterminé depuis searchLower
-
-//     switch (mode) {
-//       case 'by oeuvre':
-//         /*
-//         TODO Ça doit être affiné : 
-//         - on appelle la méthode Oeuvre.searchMatchingItems(searchLower) pour
-//           obtenir les oeuvres possibles
-//         - on boucle sur chaque oeuvre pour obtenir les exemples. On retourne 
-//           la liste obtenue.
-//         */
-//         const oeuvreId = 'DITD' ; // à déterminer en fonction du début cherché
-//         return this.getByOeuvre(oeuvreId) as CachedExempleData[];
-//       case 'by entry':
-//         return [] as CachedExempleData[];
-//       case 'by content':
-//         return this.filter((exemple: any) => {
-//           return exemple.content_min.includes(searchLower) ||
-//             exemple.content_min_ra.includes(searchRa);
-//         }) as CachedExempleData[];
-//       default:
-//         return [] ; // ne doit jamais être atteint, juste pour lint
-//     }
-//  }
-
-//   /**
-//    * Récupère tous les exemples associés à une oeuvre
-//    * Méthode spécifique Exemple
-//    */
-//   static getByOeuvre(oeuvreId: string): CachedExempleData[] {
-//     return this.filter((exemple: any) => exemple.oeuvre_id === oeuvreId) as CachedExempleData[];
-//   }
-//   /**
+   /**
 //    * Post-traitement après affichage : ajouter les titres des films
 //    * IMPORTANT: Cette méthode est appelée après l'affichage initial
 //    * 
@@ -122,7 +63,77 @@ export class Exemple extends ClientItem<UExemple, FullExemple> {
 //   }
 }
 class PanelExemple extends ClientPanel {
- static titName = 'Exemple';
+  static readonly minName = 'exemple';
+  static titName = 'Exemple';
+  static modeFiltre = 'by-title';
+  static get allItems() { return Exemple.allItems; }
+
+  static initialize(){
+    // On montre le menu qui permet de choisir le mode de filtrage de
+    // la liste.
+    (document.querySelector('#search-by-div') as HTMLDivElement)
+      .classList.remove('hidden');
+  }
+
+  static observePanel(): void {
+    super.observePanel();
+    this.menuModeFiltre.addEventListener('change', this.onChangeModeFiltre.bind(this));
+  }
+  static onChangeModeFiltre(_ev: any){
+    this.modeFiltre = this.menuModeFiltre.value;
+    console.info("Le mode de filtrage a été mis à '%s'", this.modeFiltre);
+  }
+  static get menuModeFiltre(){return (document.querySelector('#search-by') as HTMLSelectElement);}
+  
+  /**
+   * Filtrage des exemples 
+   * Méthode spécifique Exemple
+   * 
+   * En mode "normal"
+   * Le filtrage, sauf indication contraire, se fait par rapport aux
+   * titres de film. Le mécanisme est le suivant : l'user tape un
+   * début de titres de film. On en déduit les titres grâce à la
+   * méthode de la classe Oeuvre. On prend l'identifiant et on 
+   * affiche tous les exemples du film voulu.
+   * 
+   * En mode "Entrée", l'utilisateur tape une entrée du dictionnaire
+   * et la méthode renvoie tous les exemples concernant cette entrée.
+   * 
+   * En mode "Contenu", la recherche se fait sur le contenu, partout
+   * et sur toutes les entrées.
+   * 
+   * QUESTION Comment faire la différence entre les différents modes
+   * de recherche ? peut-être avec un préfix ('content' pour recher-
+   * che sur le contenu, 'dico:' ou 'entree:' pour la recherche sur 
+   * les entrées et rien pour la recherche sur le film)
+   * => Un menu
+   */
+  public static searchMatchingItems(searched: string): Exemple[] {
+    const searchLow = StringNormalizer.toLower(searched);
+    const searchRa = StringNormalizer.rationalize(searched); 
+
+    switch (this.modeFiltre) {
+      case 'by-title':
+        return this.filter((exData: {[k:string]: any}) => {
+          return exData.titresLookUp.some((titre: string) => {
+            return titre.substring(0, searchLow.length) === searchLow;
+          });
+        }) as Exemple[];
+      case 'by-entry':
+        return this.filter((exData: {[k:string]: any}) => {
+          const len = searchLow.length;
+          const seg = exData.entree4filter.substring(0, len);
+          return seg === searchLow || seg === searchRa;
+        }) as Exemple[];
+      case 'by-content':
+        return this.filter((exData: {[k:string]: any}) => {
+          return exData.content_min.includes(searchLow) ||
+            exData.content_min_ra.includes(searchRa);
+        }) as Exemple[];
+      default:
+        return [] ; // ne doit jamais être atteint, juste pour lint
+    }
+ }
 }
 
 
@@ -130,5 +141,7 @@ const RpcEx: RpcChannel = createRpcClient();
 RpcEx.on('populate', (params) => {
   const items = Exemple.deserializeItems(params.data);
   console.log("[CLIENT-Exemple] Items désérialisés", items);
+  PanelExemple.populate(items);
+  PanelExemple.initialize();
 });
 (window as any).Exemple = Exemple;

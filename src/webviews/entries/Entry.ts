@@ -12,7 +12,7 @@
  */
 import { UEntry } from '../../bothside/UEntry';
 import { FullEntry } from '../../extension/models/Entry';
-import { StringNormalizer } from '../../extension/services/cache/CacheTypes';
+import { StringNormalizer } from '../../bothside/StringUtils';
 import { ClientItem } from '../ClientItem';
 import { ClientPanel } from '../ClientPanel';
 import { createRpcClient } from '../RpcClient';

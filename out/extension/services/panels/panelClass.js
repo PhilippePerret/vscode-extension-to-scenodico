@@ -79,7 +79,6 @@ class PanelClass {
         const displayTemplatePath = path.join(context.extensionPath, 'media', panelId, 'display.html');
         const displayTemplate = fs.readFileSync(displayTemplatePath, 'utf8');
         const templateHtmlItem = `<template id="item-template">${displayTemplate}</template>`;
-        const tipsText = 'f: rechercher, j/k: naviguer, n: nouveau, Enter: éditer';
         const options = {
             specificStyles: '',
             specificScripts: '',
@@ -112,7 +111,6 @@ class PanelClass {
         html = html.replace(/{{COMMON_CSS_URI}}/g, commonCssUri);
         html = html.replace(/{{CODICON_CSS_URI}}/g, codiconCssUri);
         html = html.replace(/{{MAIN_JS_URI}}/g, mainJsUri);
-        html = html.replace(/{{TIPS_TEXT}}/g, tipsText);
         html = html.replace(/{{MAIN_CONTENT}}/g, mainContent);
         html = html.replace(/{{EDIT_FORM_CONTENT}}/g, editFormContent);
         html = html.replace(/{{TOOLS_CONTENT}}/g, toolsContent);

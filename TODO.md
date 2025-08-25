@@ -1,7 +1,19 @@
 # Todo list
 
+* Supprimer le texte "Chargement des items" dans tous les panneaux
+* Préparer les valeurs pour le filtrage des exemples
+  - titresLookup
+  - entry4filter (pas d'espaces, tout minuscule, rationnlisé)
+  - content_min
+  - content_min_ra
+* Finaliser le filtrage des exemples
+* Mettre les titres dans les exemples
+* Faire passer l'application
+
+
 * [tout repenser](#version-2)
 * Faire un script (langage ?) pour transformer les données réelles actuelles en données dans la base de données.
+  - retirer les contraintes inutiles sur les clés étrangères (on gère en amont)
   - pour les entrées, passer par un format intermédiaire en YAML
   - pour les films (oeuvres) et les exemples, transformer les données YAML réelle (migrer). Par exemple, utiliser le `id` du film/oeuvre que pour le moment la donnée ne consigne pas (l'id est seulement défini dans le fichier des exemples) 
   - en d'autres termes, produire, à partir des données actuelles, des fichiers YAML conformes ou peut-être des données XML avec un DTD (c'est le bon nom ?) strict qui ne permettent pas les erreurs.

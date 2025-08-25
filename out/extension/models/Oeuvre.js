@@ -4,7 +4,7 @@ exports.Oeuvre = void 0;
 const UniversalCacheManager_1 = require("../../bothside/UniversalCacheManager");
 const UOeuvre_1 = require("../../bothside/UOeuvre");
 const App_1 = require("../services/App");
-const CacheTypes_1 = require("../services/cache/CacheTypes");
+const StringUtils_1 = require("../../bothside/StringUtils");
 class Oeuvre extends UOeuvre_1.UOeuvre {
     static panelId = 'oeuvres';
     static REG_ARTICLES = /\b(an|a|the|le|la|les|l'|de|du)\b/i;
@@ -47,13 +47,13 @@ class Oeuvre extends UOeuvre_1.UOeuvre {
         // Créer un array avec tous les titres disponibles
         const titres = [];
         if (oeuvre.titre_francais) {
-            titres.push(CacheTypes_1.StringNormalizer.rationalize(oeuvre.titre_francais));
+            titres.push(StringUtils_1.StringNormalizer.rationalize(oeuvre.titre_francais));
         }
         if (oeuvre.titre_original) {
-            titres.push(CacheTypes_1.StringNormalizer.rationalize(oeuvre.titre_original));
+            titres.push(StringUtils_1.StringNormalizer.rationalize(oeuvre.titre_original));
         }
         if (oeuvre.titre_affiche) {
-            titres.push(CacheTypes_1.StringNormalizer.rationalize(oeuvre.titre_affiche));
+            titres.push(StringUtils_1.StringNormalizer.rationalize(oeuvre.titre_affiche));
         }
         // Il faut supprimer les articles dans les titres
         titres.forEach(titre => {
@@ -69,7 +69,7 @@ class Oeuvre extends UOeuvre_1.UOeuvre {
             uniqTitres.push(titre);
         });
         // Versions minuscules pour recherche
-        const titresLookUp = uniqTitres.map(titre => CacheTypes_1.StringNormalizer.toLower(titre));
+        const titresLookUp = uniqTitres.map(titre => StringUtils_1.StringNormalizer.toLower(titre));
         return Object.assign(oeuvre, {
             titres: titres,
             titre_affiche_formated: oeuvre.titre_affiche,
